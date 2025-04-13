@@ -3,40 +3,40 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=npc
-PKG_VERSION:=0.26.45
+PKG_VERSION:=0.26.44
 PKG_RELEASE:=1
 
 NPC_ARCH:=
 ifneq ($(filter x86_64,$(ARCH)),)
-	NPC_ARCH:=amd64
+    NPC_ARCH:=amd64
 else ifneq ($(filter i386,$(ARCH)),)
-	NPC_ARCH:=386
+    NPC_ARCH:=386
 else ifneq ($(filter aarch64%,$(ARCH)),)
-	NPC_ARCH:=arm64
+    NPC_ARCH:=arm64
 else ifneq ($(findstring armv8,$(BOARD)),)
-	NPC_ARCH:=arm64
+    NPC_ARCH:=arm64
 else ifneq ($(filter arm%,$(ARCH)),)
-	ifeq ($(BOARD),bcm53xx)
-		NPC_ARCH:=arm_v6
-	else ifeq ($(BOARD),kirkwood)
-		NPC_ARCH:=arm_v5
-	else
-		NPC_ARCH:=arm_v7
-	endif
+    ifeq ($(BOARD),bcm53xx)
+        NPC_ARCH:=arm_v6
+    else ifeq ($(BOARD),kirkwood)
+        NPC_ARCH:=arm_v5
+    else
+        NPC_ARCH:=arm_v7
+    endif
 else ifneq ($(filter mipsel%,$(ARCH)),)
-	NPC_ARCH:=mipsle
+    NPC_ARCH:=mipsle
 else ifneq ($(filter mips64el%,$(ARCH)),)
-	NPC_ARCH:=mips64le
+    NPC_ARCH:=mips64le
 else ifneq ($(filter mips64%,$(ARCH)),)
-	NPC_ARCH:=mips64
+    NPC_ARCH:=mips64
 else ifneq ($(filter mips%,$(ARCH)),)
-	NPC_ARCH:=mips
+    NPC_ARCH:=mips
 else ifneq ($(filter loongarch64%,$(ARCH)),)
-	NPC_ARCH:=loong64
+    NPC_ARCH:=loong64
 else ifneq ($(filter riscv64%,$(ARCH)),)
-	NPC_ARCH:=riscv64
+    NPC_ARCH:=riscv64
 else
-	$(error Unsupported ARCH: $(ARCH) or BOARD: $(BOARD))
+    $(error Unsupported ARCH: $(ARCH) or BOARD: $(BOARD))
 endif
 
 PKG_SOURCE:=linux_$(NPC_ARCH)_client.tar.gz
@@ -55,7 +55,7 @@ NPC_HASHES := \
   mips64=c662f86f653a85c3fc74ecb43a27f9c17adbd5a209fbdd6fef3652dfb74aeca3 \
   mips64le=8ae5b9ef75520ebf86754f8b617974be41653df84df870111d664a51ea05f45c \
   loong64=afa70a9d4f6023c98e3747f5045d593c16c52e8e0ce2e4f959bbcc79253e50da \
-  riscv64=a12c89b3b928fe49b32f01ef3fea26929ab7560f582b9f5b86f5071778ea371d \
+  riscv64=a12c89b3b928fe49b32f01ef3fea26929ab7560f582b9f5b86f5071778ea371d
 # === NPC_HASH_TABLE_END ===
 
 PKG_HASH:=$(word 2,$(filter $(NPC_ARCH)=%,$(NPC_HASHES)))
@@ -67,10 +67,10 @@ PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 include $(INCLUDE_DIR)/package.mk
 
 define Package/$(PKG_NAME)
-	SECTION:=net
-	CATEGORY:=Network
-	TITLE:=NPC Client (precompiled for $(NPC_ARCH))
-	URL:=https://github.com/djylb/nps
+    SECTION:=net
+    CATEGORY:=Network
+    TITLE:=NPC Client (precompiled for $(NPC_ARCH))
+    URL:=https://github.com/djylb/nps
 endef
 
 define Package/$(PKG_NAME)/description
@@ -79,8 +79,8 @@ This package uses the precompiled binary for the $(NPC_ARCH) architecture.
 endef
 
 define Build/Prepare
-	mkdir -p $(PKG_BUILD_DIR)
-	tar -xzf $(DL_DIR)/$(PKG_SOURCE) -C $(PKG_BUILD_DIR)
+    mkdir -p $(PKG_BUILD_DIR)
+    tar -xzf $(DL_DIR)/$(PKG_SOURCE) -C $(PKG_BUILD_DIR)
 endef
 
 define Build/Configure
@@ -90,8 +90,8 @@ define Build/Compile
 endef
 
 define Package/$(PKG_NAME)/install
-	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/$(PKG_NAME) $(1)/usr/bin/$(PKG_NAME)
+    $(INSTALL_DIR) $(1)/usr/bin
+    $(INSTALL_BIN) $(PKG_BUILD_DIR)/$(PKG_NAME) $(1)/usr/bin/$(PKG_NAME)
 endef
 
 $(eval $(call BuildPackage,$(PKG_NAME)))
