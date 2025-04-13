@@ -45,13 +45,19 @@ jobs:
         cd npc_tmp
         echo "NPC_HASHES := \\" > ../npc/hashes.tmp
         download_failed=0
+        first=1
         for arch in ${{ env.ARCH_LIST }}; do
           file="linux_${arch}_client.tar.gz"
           url="https://github.com/djylb/nps/releases/download/v${{ env.LATEST_VERSION }}/$file"
           echo "Downloading $file..."
           if curl -sLO "$url"; then
             hash=$(sha256sum "$file" | awk '{print $1}')
-            echo "  $arch=$hash \\" >> ../npc/hashes.tmp
+            if [ $first -eq 1 ]; then
+              echo "  $arch=$hash \\" >> ../npc/hashes.tmp
+              first=0
+            else
+              echo "  $arch=$hash \\" >> ../npc/hashes.tmp
+            fi
           else
             echo "  $arch=DOWNLOAD_FAILED \\" >> ../npc/hashes.tmp
             echo "::warning::Failed to download $file"
@@ -69,17 +75,7 @@ jobs:
           /^# === NPC_HASH_TABLE_START ===/ {
             inside=1
             print
-            print "NPC_HASHES := \\"
-            first=1
-            while ((getline line < "npc/hashes.tmp") > 0) {
-              if (first == 1) {
-                print "  " line " \\"
-                first = 0
-              } else {
-                print "  " line " \\"
-              }
-            }
-            close("npc/hashes.tmp")
+            system("cat npc/hashes.tmp")
             next
           }
           /^# === NPC_HASH_TABLE_END ===/ {inside=0}
