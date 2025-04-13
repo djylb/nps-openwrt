@@ -52,8 +52,8 @@ ifeq ($(filter riscv64,$(ARCH)),riscv64)
 	NPC_ARCH:=riscv64
 endif
 
-PKG_FILE:=linux_$(NPC_ARCH)_client.tar.gz
-PKG_URL:=$(NPS_URL)/releases/download/v$(PKG_VERSION)/$(PKG_FILE)
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
+PKG_SOURCE_URL:=$(NPS_URL)/releases/download/v$(PKG_VERSION)/linux_$(NPC_ARCH)_client.tar.gz
 
 # === NPC_HASH_TABLE_START ===
 NPC_HASHES := \
@@ -71,7 +71,7 @@ NPC_HASHES := \
   riscv64=REPLACE_ME
 # === NPC_HASH_TABLE_END ===
 
-PKG_HASH:=$(word 2,$(filter $(NPC_ARCH)=%,$(NPC_HASHES)))
+PKG_HASH := $(strip $(foreach pair,$(NPC_HASHES), $(if $(findstring $(NPC_ARCH),$(pair)),$(word 2, $(subst =, ,$(pair))))))
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -87,15 +87,9 @@ NPC is a fast reverse proxy client to expose local servers through NAT/firewall.
 This package uses the precompiled binary for the $(NPC_ARCH) architecture.
 endef
 
-define Build/Prepare
-	mkdir -p $(PKG_BUILD_DIR)
-	tar -xzf $(DL_DIR)/$(PKG_FILE) -C $(PKG_BUILD_DIR)
-endef
-
-define Build/Configure
-endef
-
 define Build/Compile
+	mkdir -p $(PKG_BUILD_DIR)
+	tar -xzf $(DL_DIR)/$(PKG_SOURCE) -C $(PKG_BUILD_DIR)
 endef
 
 define Package/$(PKG_NAME)/install
