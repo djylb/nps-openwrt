@@ -65,24 +65,26 @@ jobs:
         sed -i "s/^PKG_VERSION:=.*/PKG_VERSION:=${{ env.LATEST_VERSION }}/" npc/Makefile
 
         awk '
-          BEGIN {inside=0; last=0}
+          BEGIN {inside=0; count=0; lines=0}
           /^# === NPC_HASH_TABLE_START ===/ {
             inside=1
             print
-            count=0
             while ((getline line < "npc/hashes.tmp") > 0) {
-              gsub("\n", "", line)
-              count++
-              if (count > 1) {
-                print "  " line " \\"
-              } else {
-                print "  " line
-              }
+              lines++
             }
-            next
+            close("npc/hashes.tmp")
+            inside=2
+          }
+          inside == 2 {
+            if (count < lines-1) {
+              print "  " $0 " \\"
+            } else {
+              print "  " $0
+            }
+            count++
           }
           /^# === NPC_HASH_TABLE_END ===/ {inside=0}
-          inside==0 {print}
+          inside == 0 {print}
         ' npc/Makefile > npc/Makefile.new && mv npc/Makefile.new npc/Makefile
 
     - name: Commit and push changes
