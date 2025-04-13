@@ -77,12 +77,13 @@ jobs:
             next
           }
           inside == 1 {
-            if (lines == 0) {
+            if (first_read == 1) {
               while ((getline line < "npc/hashes.tmp") > 0) {
                 hashes = hashes line "\n"
                 lines++
               }
               close("npc/hashes.tmp")
+              first_read = 0
             }
             inside=2
           }
