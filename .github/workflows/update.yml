@@ -45,9 +45,11 @@ jobs:
         cd npc_tmp
         echo "NPC_HASHES := \\" > ../npc/hashes.tmp
         download_failed=0
-        last_index=$((${#ARCH_LIST[@]} - 1))
+        arch_list=(${{ env.ARCH_LIST }})
+        arch_count=${#arch_list[@]}
+        last_index=$((arch_count - 1))
         for i in $(seq 0 $last_index); do
-          arch="${ARCH_LIST[$i]}"
+          arch="${arch_list[$i]}"
           file="linux_${arch}_client.tar.gz"
           url="https://github.com/djylb/nps/releases/download/v${{ env.LATEST_VERSION }}/$file"
           echo "Downloading $file..."
