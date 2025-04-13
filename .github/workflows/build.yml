@@ -92,7 +92,7 @@ jobs:
           path: release/luci/*.ipk
 
   build_bin:
-    name: Build bin Package
+    name: Build bin
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
