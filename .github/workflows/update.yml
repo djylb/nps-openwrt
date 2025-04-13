@@ -45,16 +45,16 @@ jobs:
         cd npc_tmp
         echo "NPC_HASHES := \\" > ../npc/hashes.tmp
         download_failed=0
-        first=1
-        for arch in ${{ env.ARCH_LIST }}; do
+        last_index=$((${#ARCH_LIST[@]} - 1))
+        for i in $(seq 0 $last_index); do
+          arch="${ARCH_LIST[$i]}"
           file="linux_${arch}_client.tar.gz"
           url="https://github.com/djylb/nps/releases/download/v${{ env.LATEST_VERSION }}/$file"
           echo "Downloading $file..."
           if curl -sLO "$url"; then
             hash=$(sha256sum "$file" | awk '{print $1}')
-            if [ $first -eq 1 ]; then
+            if [ $i -eq $last_index ]; then
               echo "  $arch=$hash" >> ../npc/hashes.tmp
-              first=0
             else
               echo "  $arch=$hash \\" >> ../npc/hashes.tmp
             fi
