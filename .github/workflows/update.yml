@@ -103,6 +103,6 @@ jobs:
           echo "No changes detected, skipping commit."
           exit 0
         else
-          git commit -m "Update NPC to $LATEST_VERSION"
+          git commit -m "Update NPS to $LATEST_VERSION"
           git push origin main
         fi
