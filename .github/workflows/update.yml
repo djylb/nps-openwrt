@@ -84,6 +84,9 @@ jobs:
           inside==0 {print}
         ' npc/Makefile > npc/Makefile.new && mv npc/Makefile.new npc/Makefile
 
+    - name: Save latest version to nps.ver
+      run: echo ${{ env.LATEST_VERSION }} > nps.ver
+
     - name: Commit and push changes
       if: env.DOWNLOAD_FAILED != '1'
       run: |
@@ -94,7 +97,7 @@ jobs:
 
         git config --global user.name "djylb"
         git config --global user.email "duan@d-jy.net"
-        git add npc/Makefile
+        git add nps.ver npc/Makefile
 
         if git diff --cached --quiet; then
           echo "No changes detected, skipping commit."
@@ -103,6 +106,3 @@ jobs:
           git commit -m "Update NPC to $LATEST_VERSION"
           git push origin main
         fi
-
-    - name: Save latest version to nps.ver
-      run: echo ${{ env.LATEST_VERSION }} > nps.ver
