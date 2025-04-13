@@ -56,7 +56,7 @@ PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=$(NPS_URL)/releases/download/v$(PKG_VERSION)/linux_$(NPC_ARCH)_client.tar.gz
 
 # === NPC_HASH_TABLE_START ===
-NPC_HASHES := \
+NPC_HASHES:= \
   amd64=REPLACE_ME \
   386=REPLACE_ME \
   arm64=REPLACE_ME \
@@ -71,7 +71,7 @@ NPC_HASHES := \
   riscv64=REPLACE_ME
 # === NPC_HASH_TABLE_END ===
 
-PKG_HASH := $(strip $(foreach pair,$(NPC_HASHES), $(if $(findstring $(NPC_ARCH),$(pair)),$(word 2, $(subst =, ,$(pair))))))
+PKG_HASH:=$(strip $(foreach pair,$(NPC_HASHES), $(if $(findstring $(NPC_ARCH),$(pair)),$(word 2, $(subst =, ,$(pair))))))
 
 include $(INCLUDE_DIR)/package.mk
 

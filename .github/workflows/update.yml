@@ -43,7 +43,7 @@ jobs:
       run: |
         mkdir -p npc_tmp
         cd npc_tmp
-        echo "NPC_HASHES := \\" > ../npc/hashes.tmp
+        echo "NPC_HASHES:= \\" > ../npc/hashes.tmp
         download_failed=0
         arch_list=(${{ env.ARCH_LIST }})
         arch_count=${#arch_list[@]}
