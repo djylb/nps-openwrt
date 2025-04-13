@@ -77,17 +77,21 @@ jobs:
             next
           }
           inside == 1 {
-            while ((getline line < "npc/hashes.tmp") > 0) {
-              lines++
+            if (lines == 0) {
+              while ((getline line < "npc/hashes.tmp") > 0) {
+                hashes = hashes line "\n"
+                lines++
+              }
+              close("npc/hashes.tmp")
             }
-            close("npc/hashes.tmp")
             inside=2
           }
           inside == 2 {
+            split(hashes, hash_lines, "\n")
             if (count < lines-1) {
-              print "  " $0 " \\"
+              print "  " hash_lines[count+1] " \\"
             } else {
-              print "  " $0
+              print "  " hash_lines[count+1]
             }
             count++
           }
