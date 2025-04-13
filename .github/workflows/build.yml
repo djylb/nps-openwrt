@@ -54,9 +54,9 @@ jobs:
       - name: Update feeds & install luci package
         run: |
           cd sdk_luci
+          echo "src-link nps $GITHUB_WORKSPACE" > feeds.conf
           echo "src-git base https://github.com/openwrt/openwrt.git;openwrt-${{ matrix.sdk_ver }}" >> feeds.conf
           echo "src-git luci https://github.com/openwrt/luci.git;openwrt-${{ matrix.luci_ver }}" >> feeds.conf
-          echo "src-link nps $GITHUB_WORKSPACE" > feeds.conf
 
           ./scripts/feeds update -a
           echo "CONFIG_PACKAGE_luci-app-npc=m" > .config
@@ -133,12 +133,6 @@ jobs:
             sdk_ver: "24.10"
           - platform: arm_cortex-a15_neon-vfpv4
             sdk_url: "https://downloads.openwrt.org/releases/24.10.0/targets/ipq806x/generic/openwrt-sdk-24.10.0-ipq806x-generic_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst"
-            sdk_ver: "24.10"
-          - platform: mips_24kc
-            sdk_url: "https://downloads.openwrt.org/releases/24.10.0/targets/ath79/generic/openwrt-sdk-24.10.0-ath79-generic_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
-            sdk_ver: "24.10"
-          - platform: mips_4kec
-            sdk_url: "https://downloads.openwrt.org/releases/24.10.0/targets/realtek/rtl838x/openwrt-sdk-24.10.0-realtek-rtl838x_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
             sdk_ver: "24.10"
           - platform: mips_mips32
             sdk_url: "https://downloads.openwrt.org/releases/24.10.0/targets/bcm53xx/generic/openwrt-sdk-24.10.0-bcm53xx-generic_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst"
