@@ -37,7 +37,7 @@ jobs:
           path: sdk_luci
           key: openwrt-luci-${{ matrix.sdk_ver }}-x86_64
 
-      - name: Download and extract OpenWrt SDK for luci
+      - name: Download and extract OpenWrt SDK
         if: steps.cache-sdk-luci.outputs.cache-hit != 'true'
         run: |
           mkdir -p sdk_luci
