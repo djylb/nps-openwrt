@@ -7,15 +7,15 @@ PKG_VERSION:=0.26.44
 PKG_RELEASE:=1
 
 NPC_ARCH:=
-ifneq ($(filter x86_64,$(ARCH)),)
+ifeq ($(ARCH),x86_64)
     NPC_ARCH:=amd64
-else ifneq ($(filter i386,$(ARCH)),)
+else ifeq ($(ARCH),i386)
     NPC_ARCH:=386
-else ifneq ($(filter aarch64%,$(ARCH)),)
+else ifeq ($(ARCH),aarch64)
     NPC_ARCH:=arm64
-else ifneq ($(findstring armv8,$(BOARD)),)
+else ifeq ($(findstring armv8,$(BOARD)),armv8)
     NPC_ARCH:=arm64
-else ifneq ($(filter arm%,$(ARCH)),)
+else ifeq ($(ARCH),arm)
     ifeq ($(BOARD),bcm53xx)
         NPC_ARCH:=arm_v6
     else ifeq ($(BOARD),kirkwood)
@@ -23,17 +23,17 @@ else ifneq ($(filter arm%,$(ARCH)),)
     else
         NPC_ARCH:=arm_v7
     endif
-else ifneq ($(filter mipsel%,$(ARCH)),)
+else ifeq ($(filter mipsel%,$(ARCH)),mipsel)
     NPC_ARCH:=mipsle
-else ifneq ($(filter mips64el%,$(ARCH)),)
+else ifeq ($(filter mips64el%,$(ARCH)),mips64el)
     NPC_ARCH:=mips64le
-else ifneq ($(filter mips64%,$(ARCH)),)
+else ifeq ($(filter mips64%,$(ARCH)),mips64)
     NPC_ARCH:=mips64
-else ifneq ($(filter mips%,$(ARCH)),)
+else ifeq ($(filter mips%,$(ARCH)),mips)
     NPC_ARCH:=mips
-else ifneq ($(filter loongarch64%,$(ARCH)),)
+else ifeq ($(filter loongarch64%,$(ARCH)),loongarch64)
     NPC_ARCH:=loong64
-else ifneq ($(filter riscv64%,$(ARCH)),)
+else ifeq ($(filter riscv64%,$(ARCH)),riscv64)
     NPC_ARCH:=riscv64
 else
     $(error Unsupported ARCH: $(ARCH) or BOARD: $(BOARD))
