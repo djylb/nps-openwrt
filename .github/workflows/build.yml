@@ -2,6 +2,9 @@ name: Build OpenWrt Packages
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - nps.ver
 
 jobs:
   build_luci:
@@ -11,15 +14,19 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - sdk_ver: "21.02"
-            luci_ver: "19.07"
-            sdk_url: "https://downloads.openwrt.org/releases/21.02.7/targets/x86/64/openwrt-sdk-21.02.7-x86-64_gcc-8.4.0_musl.Linux-x86_64.tar.xz"
           - sdk_ver: "24.10"
             luci_ver: "24.10"
             sdk_url: "https://downloads.openwrt.org/releases/24.10.0/targets/x86/64/openwrt-sdk-24.10.0-x86-64_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      - name: Get version
+        id: get_version
+        run: |
+          version=$(cat nps.ver)
+          echo "NPS_VERSION=$version" >> $GITHUB_ENV
+          echo "NPS Version: $version"
 
       - name: Install build tools
         run: |
@@ -51,7 +58,7 @@ jobs:
           fi
           cd ..
 
-      - name: Update feeds & install luci package
+      - name: Update feeds & install package
         run: |
           cd sdk_luci
           echo "src-link nps $GITHUB_WORKSPACE" > feeds.conf
@@ -74,7 +81,7 @@ jobs:
           echo "CONFIG_PACKAGE_luci-app-npc=m" > .config
           make defconfig
 
-      - name: Build luci package
+      - name: Build package
         run: |
           cd sdk_luci
           make package/luci-app-npc/{clean,compile} -j$(nproc) V=s
@@ -90,6 +97,15 @@ jobs:
         with:
           name: luci-${{ matrix.luci_ver }}-${{ matrix.sdk_ver }}
           path: release/luci/*.ipk
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.NPS_VERSION }}
+          files: release/luci/*.ipk
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build_bin:
     name: Build bin
@@ -148,14 +164,14 @@ jobs:
             sdk_ver: "24.10"
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Get version
         id: get_version
         run: |
-          version=$(grep '^PKG_VERSION:=' npc/Makefile | cut -d= -f2 | xargs)
-          echo "NPCPKG_VERSION=$version" >> $GITHUB_ENV
-          echo "npc version: $version"
+          version=$(cat nps.ver)
+          echo "NPS_VERSION=$version" >> $GITHUB_ENV
+          echo "NPS Version: $version"
 
       - name: Install build tools
         run: |
@@ -187,7 +203,7 @@ jobs:
           fi
           cd ..
 
-      - name: Update feeds & install bin package
+      - name: Update feeds & install package
         run: |
           cd sdk_bin
           echo "src-link nps $GITHUB_WORKSPACE" > feeds.conf
@@ -208,7 +224,7 @@ jobs:
           echo "CONFIG_PACKAGE_npc=m" > .config
           make defconfig
 
-      - name: Build bin package for ${{ matrix.platform }}
+      - name: Build package for ${{ matrix.platform }}
         run: |
           cd sdk_bin
           make package/npc/{clean,compile} -j$(nproc) V=s
@@ -222,5 +238,14 @@ jobs:
       - name: Upload bin artifacts for ${{ matrix.platform }}
         uses: actions/upload-artifact@v4
         with:
-          name: bin-${{ matrix.platform }}-${{ env.NPCPKG_VERSION }}
+          name: bin-${{ matrix.platform }}-${{ env.NPS_VERSION }}
           path: release/bin/${{ matrix.platform }}/*.ipk
+
+      - name: Upload release assets for ${{ matrix.platform }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.NPS_VERSION }}
+          files: release/bin/${{ matrix.platform }}/*.ipk
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
