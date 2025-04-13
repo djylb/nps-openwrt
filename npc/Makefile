@@ -52,8 +52,8 @@ ifeq ($(filter riscv64,$(ARCH)),riscv64)
 	NPC_ARCH:=riscv64
 endif
 
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_SOURCE_URL:=$(NPS_URL)/releases/download/v$(PKG_VERSION)/linux_$(NPC_ARCH)_client.tar.gz
+PKG_SOURCE:=linux_$(NPC_ARCH)_client.tar.gz
+PKG_SOURCE_URL:=$(NPS_URL)/releases/download/v$(PKG_VERSION)/
 
 # === NPC_HASH_TABLE_START ===
 NPC_HASHES:= \
