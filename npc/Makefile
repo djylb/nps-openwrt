@@ -87,15 +87,7 @@ NPC is a fast reverse proxy client to expose local servers through NAT/firewall.
 This package uses the precompiled binary for the $(NPC_ARCH) architecture.
 endef
 
-define Build/Download
-	if [ ! -f $(DL_DIR)/$(PKG_FILE) ]; then \
-		echo "Downloading $(PKG_FILE)..."; \
-		wget $(PKG_URL) -O $(DL_DIR)/$(PKG_FILE); \
-	fi
-endef
-
 define Build/Prepare
-	$(Build/Download)
 	mkdir -p $(PKG_BUILD_DIR)
 	tar -xzf $(DL_DIR)/$(PKG_FILE) -C $(PKG_BUILD_DIR)
 endef
