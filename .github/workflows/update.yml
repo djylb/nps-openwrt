@@ -63,7 +63,6 @@ jobs:
     - name: Replace version and hash table in Makefile
       run: |
         sed -i "s/^PKG_VERSION:=.*/PKG_VERSION:=${{ env.LATEST_VERSION }}/" npc/Makefile
-
         awk '
           BEGIN {inside=0}
           /^# === NPC_HASH_TABLE_START ===/ {
@@ -74,7 +73,9 @@ jobs:
           }
           /^# === NPC_HASH_TABLE_END ===/ {inside=0}
           inside==0 {print}
-        ' npc/Makefile > npc/Makefile.new && mv npc/Makefile.new npc/Makefile
+        ' npc/Makefile > npc/Makefile.new
+        sed -i '$ s/ \\$//' npc/Makefile.new
+        mv npc/Makefile.new npc/Makefile
 
     - name: Commit and push changes
       if: env.DOWNLOAD_FAILED != '1'
