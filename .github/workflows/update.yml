@@ -65,7 +65,7 @@ jobs:
         sed -i "s/^PKG_VERSION:=.*/PKG_VERSION:=${{ env.LATEST_VERSION }}/" npc/Makefile
 
         awk '
-          BEGIN {inside=0; count=0; lines=0}
+          BEGIN {inside=0; count=0; lines=0; hashes=""; first_read=1}
           /^# === NPC_HASH_TABLE_START ===/ {
             inside=1
             print
