@@ -5,6 +5,9 @@ include $(TOPDIR)/rules.mk
 PKG_NAME:=npc
 PKG_VERSION:=0.26.44
 PKG_RELEASE:=1
+PKG_LICENSE:=Apache-2.0
+PKG_MAINTAINER:=Duan <duan@d-jy.net>
+PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 
 NPC_ARCH:=
 ifeq ($(ARCH),x86_64)
@@ -47,8 +50,8 @@ ifeq ($(filter riscv64,$(ARCH)),riscv64)
 	NPC_ARCH:=riscv64
 endif
 
-PKG_SOURCE:=linux_$(NPC_ARCH)_client.tar.gz
-PKG_SOURCE_URL:=https://github.com/djylb/nps/releases/download/v$(PKG_VERSION)/
+PKG_FILE:=linux_$(NPC_ARCH)_client.tar.gz
+PKG_URL:=$(NPS_URL)/releases/download/v$(PKG_VERSION)/linux_$(NPC_ARCH)_client.tar.gz
 
 # === NPC_HASH_TABLE_START ===
 NPC_HASHES := \
@@ -68,17 +71,13 @@ NPC_HASHES := \
 
 PKG_HASH:=$(word 2,$(filter $(NPC_ARCH)=%,$(NPC_HASHES)))
 
-PKG_LICENSE:=Apache-2.0
-PKG_MAINTAINER:=Duan <duan@d-jy.net>
-PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
-
 include $(INCLUDE_DIR)/package.mk
 
 define Package/$(PKG_NAME)
 	SECTION:=net
 	CATEGORY:=Network
 	TITLE:=NPC Client (precompiled for $(NPC_ARCH))
-	URL:=https://github.com/djylb/nps
+	URL:=$(NPS_URL)
 endef
 
 define Package/$(PKG_NAME)/description
@@ -88,7 +87,7 @@ endef
 
 define Build/Prepare
 	mkdir -p $(PKG_BUILD_DIR)
-	tar -xzf $(DL_DIR)/$(PKG_SOURCE) -C $(PKG_BUILD_DIR)
+	tar -xzf $(DL_DIR)/$(PKG_FILE) -C $(PKG_BUILD_DIR)
 endef
 
 define Build/Configure
