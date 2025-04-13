@@ -69,6 +69,14 @@ jobs:
           /^# === NPC_HASH_TABLE_START ===/ {
             inside=1
             print
+            next
+          }
+          /^# === NPC_HASH_TABLE_END ===/ {
+            print
+            inside=0
+            next
+          }
+          inside == 1 {
             while ((getline line < "npc/hashes.tmp") > 0) {
               lines++
             }
@@ -83,7 +91,6 @@ jobs:
             }
             count++
           }
-          /^# === NPC_HASH_TABLE_END ===/ {inside=0}
           inside == 0 {print}
         ' npc/Makefile > npc/Makefile.new && mv npc/Makefile.new npc/Makefile
 
