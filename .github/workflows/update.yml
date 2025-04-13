@@ -69,7 +69,7 @@ jobs:
           /^# === NPC_HASH_TABLE_START ===/ {
             inside=1
             print
-            system("cat npc/hashes.tmp | sed ':a;N;s/\\\\n//g;ba'")
+            system("cat npc/hashes.tmp | sed \":a;N;s/\\\\n//g;ba\"")
             next
           }
           /^# === NPC_HASH_TABLE_END ===/ {inside=0}
