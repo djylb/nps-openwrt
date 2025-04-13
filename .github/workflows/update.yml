@@ -1,4 +1,4 @@
-name: Auto Update NPC Makefile
+name: Auto Update NPS
 
 on:
   #schedule:
@@ -85,7 +85,7 @@ jobs:
         ' npc/Makefile > npc/Makefile.new && mv npc/Makefile.new npc/Makefile
 
     - name: Save latest version to nps.ver
-      run: echo ${{ env.LATEST_VERSION }} > nps.ver
+      run: echo -n ${{ env.LATEST_VERSION }} > nps.ver
 
     - name: Commit and push changes
       if: env.DOWNLOAD_FAILED != '1'
