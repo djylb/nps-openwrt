@@ -9,13 +9,17 @@ PKG_RELEASE:=1
 NPC_ARCH:=
 ifeq ($(ARCH),x86_64)
     NPC_ARCH:=amd64
-else ifeq ($(ARCH),i386)
+endif
+ifeq ($(ARCH),i386)
     NPC_ARCH:=386
-else ifeq ($(ARCH),aarch64)
+endif
+ifeq ($(ARCH),aarch64)
     NPC_ARCH:=arm64
-else ifeq ($(findstring armv8,$(BOARD)),armv8)
+endif
+ifeq ($(findstring armv8,$(BOARD)),armv8)
     NPC_ARCH:=arm64
-else ifeq ($(ARCH),arm)
+endif
+ifeq ($(ARCH),arm)
     ifeq ($(BOARD),bcm53xx)
         NPC_ARCH:=arm_v6
     else ifeq ($(BOARD),kirkwood)
@@ -23,20 +27,24 @@ else ifeq ($(ARCH),arm)
     else
         NPC_ARCH:=arm_v7
     endif
-else ifeq ($(filter mipsel%,$(ARCH)),mipsel)
+endif
+ifeq ($(filter mipsel,$(ARCH)),mipsel)
     NPC_ARCH:=mipsle
-else ifeq ($(filter mips64el%,$(ARCH)),mips64el)
+endif
+ifeq ($(filter mips64el,$(ARCH)),mips64el)
     NPC_ARCH:=mips64le
-else ifeq ($(filter mips64%,$(ARCH)),mips64)
+endif
+ifeq ($(filter mips64,$(ARCH)),mips64)
     NPC_ARCH:=mips64
-else ifeq ($(filter mips%,$(ARCH)),mips)
+endif
+ifeq ($(filter mips,$(ARCH)),mips)
     NPC_ARCH:=mips
-else ifeq ($(filter loongarch64%,$(ARCH)),loongarch64)
+endif
+ifeq ($(filter loongarch64,$(ARCH)),loongarch64)
     NPC_ARCH:=loong64
-else ifeq ($(filter riscv64%,$(ARCH)),riscv64)
+endif
+ifeq ($(filter riscv64,$(ARCH)),riscv64)
     NPC_ARCH:=riscv64
-else
-    $(error Unsupported ARCH: $(ARCH) or BOARD: $(BOARD))
 endif
 
 PKG_SOURCE:=linux_$(NPC_ARCH)_client.tar.gz
