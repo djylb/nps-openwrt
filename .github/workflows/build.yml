@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  job_build_luci:
-    name: Build luci-app-npc
+  build_luci:
+    name: Build luci
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
@@ -37,7 +37,7 @@ jobs:
           path: sdk_luci
           key: openwrt-luci-${{ matrix.sdk_ver }}-x86_64
 
-      - name: Download and extract OpenWrt SDK for luci-app-npc
+      - name: Download and extract OpenWrt SDK for luci
         if: steps.cache-sdk-luci.outputs.cache-hit != 'true'
         run: |
           mkdir -p sdk_luci
@@ -51,23 +51,13 @@ jobs:
           fi
           cd ..
 
-      - name: Copy luci-app-npc package into SDK
-        run: |
-          rm -rf sdk_luci/package/luci-app-npc
-          cp -r luci-app-npc sdk_luci/package/luci-app-npc
-
-      - name: Update feeds & install luci-app-npc package
+      - name: Update feeds & install luci package
         run: |
           cd sdk_luci
-          echo "src-link current $GITHUB_WORKSPACE" > feeds.conf
           echo "src-git base https://github.com/openwrt/openwrt.git;openwrt-${{ matrix.sdk_ver }}" >> feeds.conf
-          echo "src-git packages https://github.com/openwrt/packages.git;openwrt-${{ matrix.sdk_ver }}" >> feeds.conf
           echo "src-git luci https://github.com/openwrt/luci.git;openwrt-${{ matrix.luci_ver }}" >> feeds.conf
-          echo "src-git routing https://git.openwrt.org/feed/routing.git;openwrt-${{ matrix.sdk_ver }}" >> feeds.conf
+          echo "src-link nps $GITHUB_WORKSPACE" > feeds.conf
 
-          rm -rf feeds/packages/lang/golang
-          git clone https://github.com/sbwml/packages_lang_golang -b 24.x feeds/packages/lang/golang
-          
           ./scripts/feeds update -a
           echo "CONFIG_PACKAGE_luci-app-npc=m" > .config
           ./scripts/feeds install -d n luci-app-npc
@@ -84,25 +74,25 @@ jobs:
           echo "CONFIG_PACKAGE_luci-app-npc=m" > .config
           make defconfig
 
-      - name: Build luci-app-npc package
+      - name: Build luci package
         run: |
           cd sdk_luci
           make package/luci-app-npc/{clean,compile} -j$(nproc) V=s
 
-      - name: Collect luci-app-npc ipk
+      - name: Collect luci ipk
         run: |
           cd sdk_luci
-          mkdir -p ../release/luci-app-npc
-          cp bin/packages/*/base/luci-app-npc_*.ipk ../release/luci-app-npc/
+          mkdir -p ../release/luci
+          cp bin/packages/*/nps/luci*.ipk ../release/luci/
 
-      - name: Upload luci-app-npc artifacts
+      - name: Upload luci artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: luci-app-npc-${{ matrix.luci_ver }}-${{ matrix.sdk_ver }}
-          path: release/luci-app-npc/*.ipk
+          name: luci-${{ matrix.luci_ver }}-${{ matrix.sdk_ver }}
+          path: release/luci/*.ipk
 
-  build_npc:
-    name: Build npc Package
+  build_bin:
+    name: Build bin Package
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
@@ -166,8 +156,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Get npc version
-        id: get_npc_version
+      - name: Get version
+        id: get_version
         run: |
           version=$(grep '^PKG_VERSION:=' npc/Makefile | cut -d= -f2 | xargs)
           echo "NPCPKG_VERSION=$version" >> $GITHUB_ENV
@@ -182,18 +172,18 @@ jobs:
           sudo -E apt-get -qq autoremove --purge
           sudo -E apt-get -qq clean
 
-      - name: Cache OpenWrt SDK for npc
-        id: cache-sdk-npc
+      - name: Cache OpenWrt SDK
+        id: cache-sdk-bin
         uses: actions/cache@v4
         with:
-          path: sdk_npc
-          key: openwrt-npc-${{ matrix.platform }}-${{ matrix.sdk_ver }}
+          path: sdk_bin
+          key: openwrt-bin-${{ matrix.platform }}-${{ matrix.sdk_ver }}
 
-      - name: Download and extract OpenWrt SDK for npc - ${{ matrix.platform }}
-        if: steps.cache-sdk-npc.outputs.cache-hit != 'true'
+      - name: Download and extract OpenWrt SDK - ${{ matrix.platform }}
+        if: steps.cache-sdk-bin.outputs.cache-hit != 'true'
         run: |
-          mkdir -p sdk_npc
-          cd sdk_npc
+          mkdir -p sdk_bin
+          cd sdk_bin
           wget "${{ matrix.sdk_url }}"
           file_name=$(basename "${{ matrix.sdk_url }}")
           if [[ "$file_name" == *.zst ]]; then
@@ -203,23 +193,11 @@ jobs:
           fi
           cd ..
 
-      - name: Copy npc package into SDK
+      - name: Update feeds & install bin package
         run: |
-          rm -rf sdk_npc/package/npc
-          cp -r npc sdk_npc/package/npc
+          cd sdk_bin
+          echo "src-link nps $GITHUB_WORKSPACE" > feeds.conf
 
-      - name: Update feeds & install npc package
-        run: |
-          cd sdk_npc
-          echo "src-link current $GITHUB_WORKSPACE" > feeds.conf
-          echo "src-git base https://github.com/openwrt/openwrt.git;openwrt-${{ matrix.sdk_ver }}" >> feeds.conf
-          echo "src-git packages https://github.com/openwrt/packages.git;openwrt-${{ matrix.sdk_ver }}" >> feeds.conf
-          echo "src-git luci https://github.com/openwrt/luci.git;openwrt-${{ matrix.luci_ver }}" >> feeds.conf
-          echo "src-git routing https://git.openwrt.org/feed/routing.git;openwrt-${{ matrix.sdk_ver }}"  >> feeds.conf
-
-          rm -rf feeds/packages/lang/golang
-          git clone https://github.com/sbwml/packages_lang_golang -b 24.x feeds/packages/lang/golang
-          
           ./scripts/feeds update -a
           echo "CONFIG_PACKAGE_npc=m" > .config
           ./scripts/feeds install -d n npc
@@ -227,7 +205,7 @@ jobs:
 
       - name: Pre-generate configuration
         run: |
-          cd sdk_npc
+          cd sdk_bin
           echo "CONFIG_ALL_NONSHARED=n" > .config
           echo "CONFIG_ALL_KMODS=n" >> .config
           echo "CONFIG_ALL=n" >> .config
@@ -236,19 +214,19 @@ jobs:
           echo "CONFIG_PACKAGE_npc=m" > .config
           make defconfig
 
-      - name: Build npc package for ${{ matrix.platform }}
+      - name: Build bin package for ${{ matrix.platform }}
         run: |
-          cd sdk_npc
+          cd sdk_bin
           make package/npc/{clean,compile} -j$(nproc) V=s
 
-      - name: Collect npc ipk for ${{ matrix.platform }}
+      - name: Collect bin ipk for ${{ matrix.platform }}
         run: |
-          cd sdk_npc
-          mkdir -p ../release/npc/${{ matrix.platform }}
-          cp bin/packages/*/base/npc_*.ipk ../release/npc/${{ matrix.platform }}/
+          cd sdk_bin
+          mkdir -p ../release/bin/${{ matrix.platform }}
+          cp bin/packages/*/nps/*.ipk ../release/bin/${{ matrix.platform }}/
 
-      - name: Upload npc artifacts for ${{ matrix.platform }}
+      - name: Upload bin artifacts for ${{ matrix.platform }}
         uses: actions/upload-artifact@v4
         with:
-          name: npc-${{ matrix.platform }}-${{ env.NPCPKG_VERSION }}
-          path: release/npc/${{ matrix.platform }}/*.ipk
+          name: bin-${{ matrix.platform }}-${{ env.NPCPKG_VERSION }}
+          path: release/bin/${{ matrix.platform }}/*.ipk
