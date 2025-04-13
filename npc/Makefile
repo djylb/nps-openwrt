@@ -6,15 +6,7 @@ PKG_NAME:=npc
 PKG_VERSION:=0.26.45
 PKG_RELEASE:=1
 
-PKG_SOURCE:=linux_$(NPC_ARCH)_client.tar.gz
-PKG_SOURCE_URL:=https://github.com/djylb/nps/releases/download/v$(PKG_VERSION)/
-PKG_HASH:=skip
-
-PKG_LICENSE:=Apache-2.0
-PKG_MAINTAINER:=Duan <duan@d-jy.net>
-
-PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
-
+NPC_ARCH:=
 ifneq ($(filter x86_64,$(ARCH)),)
 	NPC_ARCH:=amd64
 else ifneq ($(filter i386,$(ARCH)),)
@@ -46,6 +38,31 @@ else ifneq ($(filter riscv64%,$(ARCH)),)
 else
 	$(error Unsupported ARCH: $(ARCH) or BOARD: $(BOARD))
 endif
+
+PKG_SOURCE:=linux_$(NPC_ARCH)_client.tar.gz
+PKG_SOURCE_URL:=https://github.com/djylb/nps/releases/download/v$(PKG_VERSION)/
+
+# === NPC_HASH_TABLE_START ===
+NPC_HASHES := \
+  amd64=REPLACE_ME \
+  386=REPLACE_ME \
+  arm64=REPLACE_ME \
+  arm_v7=REPLACE_ME \
+  arm_v6=REPLACE_ME \
+  arm_v5=REPLACE_ME \
+  mips=REPLACE_ME \
+  mipsle=REPLACE_ME \
+  mips64=REPLACE_ME \
+  mips64le=REPLACE_ME \
+  loong64=REPLACE_ME \
+  riscv64=REPLACE_ME
+# === NPC_HASH_TABLE_END ===
+
+PKG_HASH:=$(word 2,$(filter $(NPC_ARCH)=%,$(NPC_HASHES)))
+
+PKG_LICENSE:=Apache-2.0
+PKG_MAINTAINER:=Duan <duan@d-jy.net>
+PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 
 include $(INCLUDE_DIR)/package.mk
 
