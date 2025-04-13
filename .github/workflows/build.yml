@@ -74,7 +74,7 @@ jobs:
           cp bin/packages/*/base/luci-app-npc_*.ipk ../release/luci-app-npc/
 
       - name: Upload luci-app-npc artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: luci-app-npc-${{ matrix.luci_ver }}-${{ matrix.sdk_ver }}
           path: release/luci-app-npc/*.ipk
@@ -202,7 +202,7 @@ jobs:
           cp bin/packages/*/base/npc_*.ipk ../release/npc/${{ matrix.platform }}/
 
       - name: Upload npc artifacts for ${{ matrix.platform }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: npc-${{ matrix.platform }}-${{ env.NPCPKG_VERSION }}
           path: release/npc/${{ matrix.platform }}/*.ipk
