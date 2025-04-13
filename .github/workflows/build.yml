@@ -1,0 +1,208 @@
+name: Build OpenWrt Packages
+
+on:
+  workflow_dispatch:
+
+jobs:
+  job_build_luci:
+    name: Build luci-app-npc
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - sdk_ver: "21.02"
+            luci_ver: "19.07"
+            sdk_url: "https://downloads.openwrt.org/releases/21.02.7/targets/x86/64/openwrt-sdk-21.02.7-x86-64_gcc-8.4.0_musl.Linux-x86_64.tar.xz"
+          - sdk_ver: "24.10"
+            luci_ver: "24.10"
+            sdk_url: "https://downloads.openwrt.org/releases/24.10.0/targets/x86/64/openwrt-sdk-24.10.0-x86-64_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install build tools
+        run: |
+          sudo -E rm -rf /usr/share/dotnet /etc/mysql /etc/php /etc/apt/sources.list.d /usr/local/lib/android
+          echo "Installing build packages..."
+          sudo -E apt-get -qq update
+          sudo -E apt-get -qq install build-essential clang flex bison g++ gawk gcc-multilib g++-multilib gettext git libncurses-dev libssl-dev python3-distutils python3-setuptools rsync swig unzip zlib1g-dev file wget xz-utils zstd
+          sudo -E apt-get -qq autoremove --purge
+          sudo -E apt-get -qq clean
+
+      - name: Cache OpenWrt SDK 
+        id: cache-sdk-luci
+        uses: actions/cache@v4
+        with:
+          path: sdk_luci
+          key: openwrt-luci-${{ matrix.sdk_ver }}-x86_64
+
+      - name: Download and extract OpenWrt SDK for luci-app-npc
+        if: steps.cache-sdk-luci.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p sdk_luci
+          cd sdk_luci
+          wget "${{ matrix.sdk_url }}"
+          file_name=$(basename "${{ matrix.sdk_url }}")
+          if [[ "$file_name" == *.zst ]]; then
+            tar --zstd -xf "$file_name" --strip-components=1
+          else
+            tar -xf "$file_name" --strip-components=1
+          fi
+          cd ..
+
+      - name: Copy luci-app-npc package into SDK
+        run: |
+          rm -rf sdk_luci/package/luci-app-npc
+          cp -r luci-app-npc sdk_luci/package/luci-app-npc
+
+      - name: Update feeds & install luci-app-npc package
+        run: |
+          cd sdk_luci
+          ./scripts/feeds update -a
+          ./scripts/feeds install luci-app-npc
+
+      - name: Build luci-app-npc package
+        run: |
+          cd sdk_luci
+          make package/luci-app-npc/{clean,compile} -j$(nproc) V=s
+
+      - name: Collect luci-app-npc ipk
+        run: |
+          cd sdk_luci
+          mkdir -p ../release/luci-app-npc
+          cp bin/packages/*/base/luci-app-npc_*.ipk ../release/luci-app-npc/
+
+      - name: Upload luci-app-npc artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: luci-app-npc-${{ matrix.luci_ver }}-${{ matrix.sdk_ver }}
+          path: release/luci-app-npc/*.ipk
+
+  build_npc:
+    name: Build npc Package (Multi-Arch)
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: amd64
+            sdk_url: "https://downloads.openwrt.org/releases/24.10.0/targets/x86/64/openwrt-sdk-24.10.0-x86-64_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
+            sdk_ver: "24.10"
+          - platform: aarch64_generic
+            sdk_url: "https://downloads.openwrt.org/releases/24.10.0/targets/rockchip/armv8/openwrt-sdk-24.10.0-rockchip-armv8_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
+            sdk_ver: "24.10"
+          - platform: aarch64_cortex-a53
+            sdk_url: "https://downloads.openwrt.org/releases/24.10.0/targets/mvebu/cortexa53/openwrt-sdk-24.10.0-mvebu-cortexa53_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
+            sdk_ver: "24.10"
+          - platform: aarch64_cortex-a72
+            sdk_url: "https://downloads.openwrt.org/releases/24.10.0/targets/mvebu/cortexa72/openwrt-sdk-24.10.0-mvebu-cortexa72_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
+            sdk_ver: "24.10"
+          - platform: arm_cortex-a5_vfpv4
+            sdk_url: "https://downloads.openwrt.org/releases/24.10.0/targets/at91/sama5/openwrt-sdk-24.10.0-at91-sama5_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst"
+            sdk_ver: "24.10"
+          - platform: arm_cortex-a7
+            sdk_url: "https://downloads.openwrt.org/releases/24.10.0/targets/mediatek/mt7629/openwrt-sdk-24.10.0-mediatek-mt7629_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst"
+            sdk_ver: "24.10"
+          - platform: arm_cortex-a7_neon-vfpv4
+            sdk_url: "https://downloads.openwrt.org/releases/24.10.0/targets/sunxi/cortexa7/openwrt-sdk-24.10.0-sunxi-cortexa7_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst"
+            sdk_ver: "24.10"
+          - platform: arm_cortex-a8_vfpv3
+            sdk_url: "https://downloads.openwrt.org/releases/24.10.0/targets/sunxi/cortexa8/openwrt-sdk-24.10.0-sunxi-cortexa8_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst"
+            sdk_ver: "24.10"
+          - platform: arm_cortex-a9
+            sdk_url: "https://downloads.openwrt.org/releases/24.10.0/targets/bcm53xx/generic/openwrt-sdk-24.10.0-bcm53xx-generic_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst"
+            sdk_ver: "24.10"
+          - platform: arm_cortex-a9_neon
+            sdk_url: "https://downloads.openwrt.org/releases/24.10.0/targets/zynq/generic/openwrt-sdk-24.10.0-zynq-generic_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst"
+            sdk_ver: "24.10"
+          - platform: arm_cortex-a9_vfpv3-d16
+            sdk_url: "https://downloads.openwrt.org/releases/24.10.0/targets/mvebu/cortexa9/openwrt-sdk-24.10.0-mvebu-cortexa9_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst"
+            sdk_ver: "24.10"
+          - platform: arm_cortex-a15_neon-vfpv4
+            sdk_url: "https://downloads.openwrt.org/releases/24.10.0/targets/ipq806x/generic/openwrt-sdk-24.10.0-ipq806x-generic_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst"
+            sdk_ver: "24.10"
+          - platform: mips_24kc
+            sdk_url: "https://downloads.openwrt.org/releases/24.10.0/targets/ath79/generic/openwrt-sdk-24.10.0-ath79-generic_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
+            sdk_ver: "24.10"
+          - platform: mips_4kec
+            sdk_url: "https://downloads.openwrt.org/releases/24.10.0/targets/realtek/rtl838x/openwrt-sdk-24.10.0-realtek-rtl838x_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
+            sdk_ver: "24.10"
+          - platform: mips_mips32
+            sdk_url: "https://downloads.openwrt.org/releases/24.10.0/targets/bcm53xx/generic/openwrt-sdk-24.10.0-bcm53xx-generic_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst"
+            sdk_ver: "24.10"
+          - platform: mipsel_24kc
+            sdk_url: "https://downloads.openwrt.org/releases/24.10.0/targets/ramips/rt288x/openwrt-sdk-24.10.0-ramips-rt288x_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
+            sdk_ver: "24.10"
+          - platform: mipsel_74kc
+            sdk_url: "https://downloads.openwrt.org/releases/24.10.0/targets/ramips/rt3883/openwrt-sdk-24.10.0-ramips-rt3883_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
+            sdk_ver: "24.10"
+          - platform: mipsel_mips32
+            sdk_url: "https://downloads.openwrt.org/releases/24.10.0/targets/bcm47xx/generic/openwrt-sdk-24.10.0-bcm47xx-generic_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
+            sdk_ver: "24.10"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Get npc version
+        id: get_npc_version
+        run: |
+          version=$(grep '^PKG_VERSION:=' npc/Makefile | cut -d= -f2 | xargs)
+          echo "NPCPKG_VERSION=$version" >> $GITHUB_ENV
+          echo "npc version: $version"
+
+      - name: Install build tools
+        run: |
+          sudo -E apt-get update -qq
+          sudo -E apt-get -qq install build-essential clang flex bison g++ gawk gcc-multilib g++-multilib gettext git libncurses-dev libssl-dev python3-distutils python3-setuptools rsync swig unzip zstd xz-utils file wget
+          sudo -E apt-get -qq autoremove --purge
+          sudo -E apt-get -qq clean
+
+      - name: Cache OpenWrt SDK for npc
+        id: cache-sdk-npc
+        uses: actions/cache@v4
+        with:
+          path: sdk_npc
+          key: openwrt-npc-${{ matrix.platform }}-${{ matrix.sdk_ver }}
+
+      - name: Download and extract OpenWrt SDK for npc - ${{ matrix.platform }}
+        if: steps.cache-sdk-npc.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p sdk_npc
+          cd sdk_npc
+          wget "${{ matrix.sdk_url }}"
+          file_name=$(basename "${{ matrix.sdk_url }}")
+          if [[ "$file_name" == *.zst ]]; then
+            tar --zstd -xf "$file_name" --strip-components=1
+          else
+            tar -xf "$file_name" --strip-components=1
+          fi
+          cd ..
+
+      - name: Copy npc package into SDK
+        run: |
+          rm -rf sdk_npc/package/npc
+          cp -r npc sdk_npc/package/npc
+
+      - name: Update feeds & install npc package
+        run: |
+          cd sdk_npc
+          ./scripts/feeds update -a
+          ./scripts/feeds install npc
+
+      - name: Build npc package for ${{ matrix.platform }}
+        run: |
+          cd sdk_npc
+          make package/npc/{clean,compile} -j$(nproc) V=s
+
+      - name: Collect npc ipk for ${{ matrix.platform }}
+        run: |
+          cd sdk_npc
+          mkdir -p ../release/npc/${{ matrix.platform }}
+          cp bin/packages/*/base/npc_*.ipk ../release/npc/${{ matrix.platform }}/
+
+      - name: Upload npc artifacts for ${{ matrix.platform }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: npc-${{ matrix.platform }}-${{ env.NPCPKG_VERSION }}
+          path: release/npc/${{ matrix.platform }}/*.ipk
