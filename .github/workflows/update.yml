@@ -69,7 +69,10 @@ jobs:
           /^# === NPC_HASH_TABLE_START ===/ {
             inside=1
             print
-            system("cat npc/hashes.tmp | sed \":a;N;s/\\\\n//g;ba\"")
+            while ((getline line < "npc/hashes.tmp") > 0) {
+              gsub("\n", "", line)  # Remove newline characters
+              print "  " line " \\"
+            }
             next
           }
           /^# === NPC_HASH_TABLE_END ===/ {inside=0}
