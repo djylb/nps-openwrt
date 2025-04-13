@@ -53,7 +53,7 @@ jobs:
           if curl -sLO "$url"; then
             hash=$(sha256sum "$file" | awk '{print $1}')
             if [ $first -eq 1 ]; then
-              echo "  $arch=$hash \\" >> ../npc/hashes.tmp
+              echo "  $arch=$hash" >> ../npc/hashes.tmp
               first=0
             else
               echo "  $arch=$hash \\" >> ../npc/hashes.tmp
