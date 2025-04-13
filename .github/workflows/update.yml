@@ -65,13 +65,19 @@ jobs:
         sed -i "s/^PKG_VERSION:=.*/PKG_VERSION:=${{ env.LATEST_VERSION }}/" npc/Makefile
 
         awk '
-          BEGIN {inside=0}
+          BEGIN {inside=0; last=0}
           /^# === NPC_HASH_TABLE_START ===/ {
             inside=1
             print
+            count=0
             while ((getline line < "npc/hashes.tmp") > 0) {
-              gsub("\n", "", line)  # Remove newline characters
-              print "  " line " \\"
+              gsub("\n", "", line)
+              count++
+              if (count > 1) {
+                print "  " line " \\"
+              } else {
+                print "  " line
+              }
             }
             next
           }
