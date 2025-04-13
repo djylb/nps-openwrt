@@ -23,6 +23,8 @@ start_service() {
 	conf_write_bool tls_enable $tls_enable
 	echo "vkey=${vkey}" >> $conf_Path
 	echo "auto_reconnection=true" >> $conf_Path
+	echo "debug=false" >> $conf_Path
+	echo "log=false" >> $conf_Path
 	[ -n "$max_conn" ] && echo "max_conn=${max_conn}" >> $conf_Path
 	[ -n "$rate_limit" ] && echo "rate_limit=${rate_limit}" >> $conf_Path
 	[ -n "$flow_limit" ] && echo "flow_limit=${flow_limit}" >> $conf_Path
