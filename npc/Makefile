@@ -9,6 +9,8 @@ PKG_LICENSE:=Apache-2.0
 PKG_MAINTAINER:=Duan <duan@d-jy.net>
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 
+NPS_URL=https://github.com/djylb/nps
+
 NPC_ARCH:=
 ifeq ($(ARCH),x86_64)
 	NPC_ARCH:=amd64
@@ -51,7 +53,7 @@ ifeq ($(filter riscv64,$(ARCH)),riscv64)
 endif
 
 PKG_FILE:=linux_$(NPC_ARCH)_client.tar.gz
-PKG_URL:=$(NPS_URL)/releases/download/v$(PKG_VERSION)/linux_$(NPC_ARCH)_client.tar.gz
+PKG_URL:=$(NPS_URL)/releases/download/v$(PKG_VERSION)/$(PKG_FILE)
 
 # === NPC_HASH_TABLE_START ===
 NPC_HASHES := \
@@ -85,7 +87,15 @@ NPC is a fast reverse proxy client to expose local servers through NAT/firewall.
 This package uses the precompiled binary for the $(NPC_ARCH) architecture.
 endef
 
+define Build/Download
+	if [ ! -f $(DL_DIR)/$(PKG_FILE) ]; then \
+		echo "Downloading $(PKG_FILE)..."; \
+		wget $(PKG_URL) -O $(DL_DIR)/$(PKG_FILE); \
+	fi
+endef
+
 define Build/Prepare
+	$(Build/Download)
 	mkdir -p $(PKG_BUILD_DIR)
 	tar -xzf $(DL_DIR)/$(PKG_FILE) -C $(PKG_BUILD_DIR)
 endef
