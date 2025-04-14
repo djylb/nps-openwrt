@@ -12,101 +12,109 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      with:
-        ref: main
-        fetch-depth: 0
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Install tools
-      run: sudo apt-get update && sudo apt-get install -y curl jq
+      - name: Install tools
+        run: sudo apt-get update && sudo apt-get install -y curl jq
 
-    - name: Get latest release version
-      id: version
-      run: |
-        latest=$(curl -s https://api.github.com/repos/djylb/nps/releases/latest | jq -r .tag_name)
-        version=${latest#v}
-        echo "Latest NPS version: $version"
-        echo "LATEST_VERSION=$version" >> $GITHUB_ENV
+      - name: Get latest version
+        id: version
+        run: |
+          latest=$(curl -s https://api.github.com/repos/djylb/nps/releases/latest | jq -r .tag_name)
+          version=${latest#v}
+          echo "Latest NPS version: $version"
+          echo "LATEST_VERSION=$version" >> $GITHUB_ENV
 
-    - name: Get current version from Makefile
-      id: current
-      run: |
-        current=$(grep '^PKG_VERSION:=' npc/Makefile | cut -d= -f2 | xargs)
-        echo "Current Makefile version: $current"
-        echo "CURRENT_VERSION=$current" >> $GITHUB_ENV
-
-    - name: Define architecture map
-      id: archs
-      run: |
-        echo 'ARCH_LIST=amd64 386 arm64 arm_v7 arm_v6 arm_v5 mips mipsle mips64 mips64le loong64 riscv64' >> $GITHUB_ENV
-
-    - name: Download and hash each arch
-      id: hash
-      run: |
-        mkdir -p npc_tmp
-        cd npc_tmp
-        echo "NPC_HASHES:= \\" > ../npc/hashes.tmp
-        download_failed=0
-        arch_list=(${{ env.ARCH_LIST }})
-        arch_count=${#arch_list[@]}
-        last_index=$((arch_count - 1))
-        for i in $(seq 0 $last_index); do
-          arch="${arch_list[$i]}"
-          file="linux_${arch}_client.tar.gz"
-          url="https://github.com/djylb/nps/releases/download/v${{ env.LATEST_VERSION }}/$file"
-          echo "Downloading $file..."
-          if curl -sLO "$url"; then
-            hash=$(sha256sum "$file" | awk '{print $1}')
-            if [ $i -eq $last_index ]; then
-              echo "  $arch=$hash" >> ../npc/hashes.tmp
-            else
-              echo "  $arch=$hash \\" >> ../npc/hashes.tmp
-            fi
+      - name: Get current version
+        id: current
+        run: |
+          if [ -f "nps.ver" ]; then
+            current=$(cat nps.ver | xargs)
           else
-            echo "  $arch=DOWNLOAD_FAILED \\" >> ../npc/hashes.tmp
-            echo "::warning::Failed to download $file"
-            download_failed=1
+            current=$(grep '^PKG_VERSION:=' npc/Makefile | cut -d= -f2 | xargs)
           fi
-        done
-        echo "DOWNLOAD_FAILED=$download_failed" >> $GITHUB_ENV
+          echo "Current Makefile version: $current"
+          echo "CURRENT_VERSION=$current" >> $GITHUB_ENV
 
-    - name: Replace version and hash table in Makefile
-      run: |
-        sed -i "s/^PKG_VERSION:=.*/PKG_VERSION:=${{ env.LATEST_VERSION }}/" npc/Makefile
+      - name: Define architecture map
+        id: archs
+        run: |
+          echo 'ARCH_LIST=amd64 386 arm64 arm_v7 arm_v6 arm_v5 mips mipsle mips64 mips64le loong64 riscv64' >> $GITHUB_ENV
 
-        awk '
-          BEGIN {inside=0}
-          /^# === NPC_HASH_TABLE_START ===/ {
-            inside=1
-            print
-            system("cat npc/hashes.tmp")
-            next
-          }
-          /^# === NPC_HASH_TABLE_END ===/ {inside=0}
-          inside==0 {print}
-        ' npc/Makefile > npc/Makefile.new && mv npc/Makefile.new npc/Makefile
+      - name: Download and hash each arch
+        id: hash
+        run: |
+          mkdir -p npc_tmp
+          cd npc_tmp
+          echo "NPC_HASHES:= \\" > ../npc/hashes.tmp
+          download_failed=0
+          arch_list=(${{ env.ARCH_LIST }})
+          arch_count=${#arch_list[@]}
+          last_index=$((arch_count - 1))
+          for i in $(seq 0 $last_index); do
+            arch="${arch_list[$i]}"
+            file="linux_${arch}_client.tar.gz"
+            url="https://github.com/djylb/nps/releases/download/v${{ env.LATEST_VERSION }}/$file"
+            echo "Downloading $file..."
+            if curl -sLO "$url"; then
+              hash=$(sha256sum "$file" | awk '{print $1}')
+              if [ $i -eq $last_index ]; then
+                echo "  $arch=$hash" >> ../npc/hashes.tmp
+              else
+                echo "  $arch=$hash \\" >> ../npc/hashes.tmp
+              fi
+            else
+              echo "  $arch=DOWNLOAD_FAILED \\" >> ../npc/hashes.tmp
+              echo "::warning::Failed to download $file"
+              download_failed=1
+            fi
+          done
+          echo "DOWNLOAD_FAILED=$download_failed" >> $GITHUB_ENV
 
-    - name: Save latest version to nps.ver
-      run: echo -n ${{ env.LATEST_VERSION }} > nps.ver
+      - name: Replace version and hash table in Makefile
+        run: |
+          sed -i "s/^PKG_VERSION:=.*/PKG_VERSION:=${{ env.LATEST_VERSION }}/" npc/Makefile
 
-    - name: Commit and push changes
-      if: env.DOWNLOAD_FAILED != '1'
-      run: |
-        #if [ "$CURRENT_VERSION" == "$LATEST_VERSION" ]; then
-        #  echo "No update needed."
-        #  exit 0
-        #fi
+          awk '
+            BEGIN {inside=0}
+            /^# === NPC_HASH_TABLE_START ===/ {
+              inside=1
+              print
+              system("cat npc/hashes.tmp")
+              next
+            }
+            /^# === NPC_HASH_TABLE_END ===/ {inside=0}
+            inside==0 {print}
+          ' npc/Makefile > npc/Makefile.new && mv npc/Makefile.new npc/Makefile
 
-        git config --global user.name "djylb"
-        git config --global user.email "duan@d-jy.net"
-        git add nps.ver npc/Makefile
+      - name: Save latest version to nps.ver
+        run: echo -n ${{ env.LATEST_VERSION }} > nps.ver
 
-        if git diff --cached --quiet; then
-          echo "No changes detected, skipping commit."
-          exit 0
-        else
-          git commit -m "Update NPC to $LATEST_VERSION"
-          #git push origin main
-          git push https://x-access-token:${{ secrets.GH_PAT }}@github.com/${{ github.repository }}.git HEAD:main
-        fi
+      - name: Commit and push changes
+        if: env.DOWNLOAD_FAILED != '1'
+        run: |
+          git config --global user.name "djylb"
+          git config --global user.email "duan@d-jy.net"
+          git add nps.ver npc/Makefile
+
+          if git diff --cached --quiet; then
+            echo "No changes detected, skipping commit."
+            exit 0
+          else
+            git commit -m "Update NPC to $LATEST_VERSION"
+            git push
+          fi
+
+      - name: Trigger Build
+        if: env.DOWNLOAD_FAILED != '1'
+        run: |
+          if [ "$CURRENT_VERSION" == "$LATEST_VERSION" ]; then
+            echo "No update needed."
+            exit 0
+          fi
+
+          curl -X POST https://api.github.com/repos/${{ github.repository }}/dispatches \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.GH_PAT }}" \
+            -d '{"event_type":"trigger-build"}'
