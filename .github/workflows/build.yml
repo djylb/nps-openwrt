@@ -39,31 +39,36 @@ jobs:
           sudo -E apt-get -qq autoremove --purge
           sudo -E apt-get -qq clean
 
-      - name: Cache OpenWrt SDK 
-        id: cache-sdk-luci
+      - name: Cache OpenWrt SDK
+        id: cache-sdk
         uses: actions/cache@v4
         with:
-          path: sdk_luci
-          key: openwrt-luci-${{ matrix.sdk_ver }}-x86_64
+          path: cache-sdk
+          key: openwrt-sdk-${{ matrix.sdk_ver }}-amd64
 
-      - name: Download and extract OpenWrt SDK
-        if: steps.cache-sdk-luci.outputs.cache-hit != 'true'
+      - name: Download SDK
+        if: steps.cache-sdk.outputs.cache-hit != 'true'
         run: |
-          mkdir -p sdk_luci
-          cd sdk_luci
+          mkdir -p cache-sdk
+          cd cache-sdk
           wget "${{ matrix.sdk_url }}"
-          file_name=$(basename "${{ matrix.sdk_url }}")
-          if [[ "$file_name" == *.zst ]]; then
-            tar --zstd -xf "$file_name" --strip-components=1
-          else
-            tar -xf "$file_name" --strip-components=1
-          fi
           cd ..
+
+      - name: Extract SDK
+        run: |
+          mkdir -p sdk
+          file_name=$(basename "${{ matrix.sdk_url }}")
+          tarball_path="$GITHUB_WORKSPACE/cache-sdk/$file_name"
+          if [[ "$file_name" == *.zst ]]; then
+            tar --zstd -xf "$tarball_path" -C sdk --strip-components=1
+          else
+            tar -xf "$tarball_path" -C sdk --strip-components=1
+          fi
 
       - name: Update feeds & install package
         run: |
-          cd sdk_luci
-          echo "src-link nps $GITHUB_WORKSPACE" > feeds.conf
+          cd sdk
+          echo "src-git nps https://github.com/${{ github.repository }}.git" > feeds.conf
           echo "src-git base https://github.com/openwrt/openwrt.git;openwrt-${{ matrix.sdk_ver }}" >> feeds.conf
           echo "src-git luci https://github.com/openwrt/luci.git;openwrt-${{ matrix.luci_ver }}" >> feeds.conf
 
@@ -74,7 +79,7 @@ jobs:
 
       - name: Pre-generate configuration
         run: |
-          cd sdk_luci
+          cd sdk
           echo "CONFIG_ALL_NONSHARED=n" > .config
           echo "CONFIG_ALL_KMODS=n" >> .config
           echo "CONFIG_ALL=n" >> .config
@@ -85,12 +90,12 @@ jobs:
 
       - name: Build package
         run: |
-          cd sdk_luci
+          cd sdk
           make package/luci-app-npc/{clean,compile} -j$(nproc) V=s
 
       - name: Collect luci ipk
         run: |
-          cd sdk_luci
+          cd sdk
           mkdir -p ../release/luci
           cp bin/packages/*/nps/luci*.ipk ../release/luci/
 
@@ -185,30 +190,35 @@ jobs:
           sudo -E apt-get -qq clean
 
       - name: Cache OpenWrt SDK
-        id: cache-sdk-bin
+        id: cache-sdk
         uses: actions/cache@v4
         with:
-          path: sdk_bin
-          key: openwrt-bin-${{ matrix.platform }}-${{ matrix.sdk_ver }}
+          path: cache-sdk
+          key: openwrt-sdk-${{ matrix.sdk_ver }}-${{ matrix.platform }}
 
-      - name: Download and extract OpenWrt SDK - ${{ matrix.platform }}
-        if: steps.cache-sdk-bin.outputs.cache-hit != 'true'
+      - name: Download SDK - ${{ matrix.platform }}
+        if: steps.cache-sdk.outputs.cache-hit != 'true'
         run: |
-          mkdir -p sdk_bin
-          cd sdk_bin
+          mkdir -p cache-sdk
+          cd cache-sdk
           wget "${{ matrix.sdk_url }}"
-          file_name=$(basename "${{ matrix.sdk_url }}")
-          if [[ "$file_name" == *.zst ]]; then
-            tar --zstd -xf "$file_name" --strip-components=1
-          else
-            tar -xf "$file_name" --strip-components=1
-          fi
           cd ..
+
+      - name: Extract SDK
+        run: |
+          mkdir -p sdk
+          file_name=$(basename "${{ matrix.sdk_url }}")
+          tarball_path="$GITHUB_WORKSPACE/cache-sdk/$file_name"
+          if [[ "$file_name" == *.zst ]]; then
+            tar --zstd -xf "$tarball_path" -C sdk --strip-components=1
+          else
+            tar -xf "$tarball_path" -C sdk --strip-components=1
+          fi
 
       - name: Update feeds & install package
         run: |
-          cd sdk_bin
-          echo "src-link nps $GITHUB_WORKSPACE" > feeds.conf
+          cd sdk
+          echo "src-git nps https://github.com/${{ github.repository }}.git" > feeds.conf
 
           ./scripts/feeds update -a
           echo "CONFIG_PACKAGE_npc=m" > .config
@@ -217,7 +227,7 @@ jobs:
 
       - name: Pre-generate configuration
         run: |
-          cd sdk_bin
+          cd sdk
           echo "CONFIG_ALL_NONSHARED=n" > .config
           echo "CONFIG_ALL_KMODS=n" >> .config
           echo "CONFIG_ALL=n" >> .config
@@ -228,12 +238,12 @@ jobs:
 
       - name: Build package for ${{ matrix.platform }}
         run: |
-          cd sdk_bin
+          cd sdk
           make package/npc/{clean,compile} -j$(nproc) V=s
 
       - name: Collect bin ipk for ${{ matrix.platform }}
         run: |
-          cd sdk_bin
+          cd sdk
           mkdir -p ../release/bin/${{ matrix.platform }}
           cp bin/packages/*/nps/*.ipk ../release/bin/${{ matrix.platform }}/
 
