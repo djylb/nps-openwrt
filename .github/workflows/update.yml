@@ -1,11 +1,11 @@
-name: Auto Update NPS
+name: Update NPS
 
 on:
   #schedule:
   #  - cron: '0 3 * * *'
   workflow_dispatch:
   repository_dispatch:
-    types: [trigger-update-npc]
+    types: [trigger-update]
 
 jobs:
   update-npc:
@@ -103,7 +103,7 @@ jobs:
           echo "No changes detected, skipping commit."
           exit 0
         else
-          git commit -m "Update NPS to $LATEST_VERSION"
+          git commit -m "Update NPC to $LATEST_VERSION"
           #git push origin main
           git push https://x-access-token:${{ secrets.GH_PAT }}@github.com/${{ github.repository }}.git HEAD:main
         fi
