@@ -54,10 +54,11 @@ crypt.rmempty = false
 update_button = s:option(Button, "update_button", translate("Update NPC"))
 update_button.modal = false
 function update_button.write(self, section, value)
+    luci.http.status(200)
+    luci.http.redirect(luci.dispatcher.build_url("admin", "services", "npc"))
     luci.sys.call("/usr/bin/npc update")
     luci.sys.call("mv /usr/local/bin/npc /usr/bin/npc")
     luci.sys.call("mv /usr/local/bin/npc-update /usr/bin/npc-update")
-    luci.http.redirect(luci.dispatcher.build_url("admin", "services", "npc"))
 end
 
 return m
