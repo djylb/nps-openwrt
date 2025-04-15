@@ -51,4 +51,12 @@ crypt = s:option(Flag, "crypt", translate("Enable Encryption"), translate("Encry
 crypt.default = "0"
 crypt.rmempty = false
 
+update_button = s:option(Button, "update_button", translate("Update NPC"))
+update_button.modal = false
+function update_button.write(self, section, value)
+    luci.sys.call("/usr/bin/npc update")
+    luci.sys.call("mv /usr/local/bin/npc /usr/bin/npc")
+    luci.sys.call("mv /usr/local/bin/npc-update /usr/bin/npc-update")
+end
+
 return m
