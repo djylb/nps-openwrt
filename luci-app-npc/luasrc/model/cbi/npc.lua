@@ -57,6 +57,7 @@ function update_button.write(self, section, value)
     luci.sys.call("/usr/bin/npc update")
     luci.sys.call("mv /usr/local/bin/npc /usr/bin/npc")
     luci.sys.call("mv /usr/local/bin/npc-update /usr/bin/npc-update")
+    luci.http.redirect(luci.dispatcher.build_url("admin", "services", "npc"))
 end
 
 return m
