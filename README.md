@@ -1,8 +1,8 @@
 # NPS-OpenWrt
 
-NPS OpenWrt repository
+[NPS](https://github.com/djylb/nps) OpenWrt repository
 
-NPS 的 OpenWrt 仓库
+[NPS](https://github.com/djylb/nps) 的 OpenWrt 仓库
 
 ---
 
