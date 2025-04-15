@@ -19,4 +19,26 @@ XHR.poll(3, '<%=url([[admin]], [[services]], [[npc]], [[status]])%>', null,
 	<p id="npc_status">
 		<em><%:Collecting data...%></em>
 	</p>
+    <button id="updateBtn" class="cbi-button cbi-button-apply mar-10" onclick="updateNpsClient()">
+        {{ translate('Update NPC') }}
+    </button>
+    <div id="status_message" style="margin-top: 10px; color: blue;"></div>
 </fieldset>
+
+<script type="text/javascript">
+  function updateNpsClient() {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "/cgi-bin/luci/admin/services/npc/update", true);
+    xhr.onload = function() {
+      var statusMessage = document.getElementById('status_message');
+      if (xhr.status == 200) {
+        statusMessage.style.color = "green";
+        statusMessage.innerHTML = "Success!";
+      } else {
+        statusMessage.style.color = "red";
+        statusMessage.innerHTML = "Failed!";
+      }
+    };
+    xhr.send();
+  }
+</script>

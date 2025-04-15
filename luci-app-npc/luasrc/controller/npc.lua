@@ -15,3 +15,12 @@ function act_status()
 	luci.http.prepare_content("application/json")
 	luci.http.write_json(e)
 end
+
+function act_update()
+    luci.sys.call("/usr/bin/npc update")
+    luci.sys.call("mv /usr/local/bin/npc /usr/bin/npc")
+    luci.sys.call("mv /usr/local/bin/npc-update /usr/bin/npc-update")
+    
+    luci.http.status(200)
+    luci.http.write("Done")
+end

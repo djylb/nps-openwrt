@@ -60,3 +60,6 @@ msgstr "流量限制"
 
 msgid "Client flow limit (Not necessary)"
 msgstr "客户端流量限制 (可选,非必须)"
+
+msgid "Update NPC"
+msgstr "更新 NPC"
