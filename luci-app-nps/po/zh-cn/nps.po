@@ -1,0 +1,20 @@
+msgid "NPS Server"
+msgstr "NPS 内网穿透服务端"
+
+msgid "Nps is a fast reverse proxy to help you expose a local server behind a NAT or firewall to the internet."
+msgstr "NPS 是一种快速反向代理,可帮助您将 NAT 或防火墙后的本地服务器公开到 Internet"
+
+msgid "NPS Configuration"
+msgstr "NPS 配置"
+
+msgid "RUNNING"
+msgstr "运行中"
+
+msgid "NOT RUNNING"
+msgstr "未运行"
+
+msgid "Update NPS"
+msgstr "更新 NPS"
+
+msgid "Default Config"
+msgstr "默认配置"

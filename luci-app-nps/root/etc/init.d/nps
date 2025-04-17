@@ -1,0 +1,41 @@
+#!/bin/sh /etc/rc.common
+
+START=95
+USE_PROCD=1
+LOGGER="logger -t [NPS]"
+
+nps_Path="$(command -v nps)"
+
+start_service() {
+	local basic_list="enable"
+	for i in $(echo $basic_list);do
+		local eval $i="$(uci_get_by_type nps 0 $i)"
+	done;unset i
+
+
+	if [ "$enable" = 1 ]
+	then
+		${LOGGER} "Starting NPS Server(NPS) ..."
+		procd_open_instance
+		procd_set_param command $nps_Path service
+		procd_set_param respawn
+		procd_set_param stdout 1
+		procd_set_param stderr 1
+		procd_close_instance
+	else
+		${LOGGER} "NPS Server(NPS) Service is now disabled ..."
+	fi
+}
+
+stop_service() {
+	$LOGGER "Stopping NPS Server(NPS) ..."
+}
+
+service_triggers() {
+	procd_add_reload_trigger "nps"
+}
+
+uci_get_by_type() {
+	local ret=$(uci get nps.@$1[$2].$3 2>/dev/null)
+	echo ${ret:=$4}
+}
