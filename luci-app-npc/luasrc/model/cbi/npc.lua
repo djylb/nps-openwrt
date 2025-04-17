@@ -10,43 +10,15 @@ enable = s:option(Flag, "enable", translate("Enable"))
 enable.rmempty = false
 enable.default = "0"
 
-server = s:option(Value, "server_addr", translate("Server Address"), translate("IP address or Domain Name"))
+server = s:option(Value, "server_addr", translate("Server Address"), translate("(host:port) e.g. xxx.com:8024,yyy.com:8025..."))
 server.rmempty = false
 
-port = s:option(Value, "server_port", translate("Port"))
-port.datatype = "port"
-port.default = "8024"
-port.rmempty = false
-
-vkey = s:option(Value, "vkey", translate("vkey"))
+vkey = s:option(Value, "vkey", translate("vkey"), translate("(vkey) e.g. vkey1,vkey2..."))
 vkey.password = true
 vkey.rmempty = false
 
-protocol = s:option(ListValue, "protocol", translate("Protocol Type (tcp|tls|kcp)"))
+protocol = s:option(Value, "protocol", translate("Protocol Type"), translate("(tcp|tls|kcp) e.g. tcp,tls..."))
 protocol.default = "tcp"
-protocol:value("tcp", translate("TCP Protocol"))
-protocol:value("tls", translate("TLS Protocol"))
-protocol:value("kcp", translate("KCP Protocol"))
-
-max_conn = s:option(Value, "max_conn", translate("Max Connection Limit"), translate("Maximum number of connections (Not necessary)"))
-max_conn.optional = true
-max_conn.rmempty = true
-
-rate_limit = s:option(Value, "rate_limit", translate("Rate Limit"), translate("Client rate limit (Not necessary)"))
-rate_limit.optional = true
-rate_limit.rmempty = true
-
-flow_limit = s:option(Value, "flow_limit", translate("Flow Limit"), translate("Client flow limit (Not necessary)"))
-flow_limit.optional = true
-flow_limit.rmempty = true
-
-compress = s:option(Flag, "compress", translate("Enable Compression"), translate("The contents will be compressed to speed up the traffic forwarding speed, but this will consume some additional cpu resources."))
-compress.default = "0"
-compress.rmempty = false
-
-crypt = s:option(Flag, "crypt", translate("Enable Encryption"), translate("Encrypted the communication between Npc and Nps, will effectively prevent the traffic intercepted."))
-crypt.default = "0"
-crypt.rmempty = false
 
 update_button = s:option(Button, "update_button", translate("Update NPC"))
 update_button.modal = false
@@ -57,6 +29,13 @@ function update_button.write(self, section, value)
     luci.sys.call("mv /usr/local/bin/npc /usr/bin/npc")
     luci.sys.call("mv /usr/local/bin/npc-update /usr/bin/npc-update")
     luci.sys.call("/etc/init.d/npc restart")
+end
+
+github_button = s:option(Button, "github_button", "Github", "https://github.com/djylb/nps-openwrt")
+github_button.modal = false
+function github_button.write(self, section, value)
+    luci.http.status(200)
+    luci.http.redirect("https://github.com/djylb/nps-openwrt")
 end
 
 return m

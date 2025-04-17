@@ -1,6 +1,7 @@
 
 config npc
 	option enable '0'
-	option server_addr '1.2.3.4'
+	option server_addr '1.2.3.4:123'
+	option protocol 'tcp'
 	option vkey 'abcdefg'
 
