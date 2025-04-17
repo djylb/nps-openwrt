@@ -23,7 +23,6 @@ protocol.default = "tcp"
 update_button = s:option(Button, "update_button", translate("Update NPC"), translate("Update completed. The application will stop. Please manually enable the service again."))
 update_button.modal = false
 function update_button.write(self, section, value)
-    luci.http.status(200)
     luci.http.redirect(luci.dispatcher.build_url("admin", "services", "npc"))
     luci.sys.call("/etc/init.d/npc stop")
     luci.sys.call("/usr/bin/npc update")

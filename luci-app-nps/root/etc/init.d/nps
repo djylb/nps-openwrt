@@ -7,11 +7,16 @@ LOGGER="logger -t [NPS]"
 nps_Path="$(command -v nps)"
 
 start_service() {
-	local basic_list="enable"
-	for i in $(echo $basic_list);do
-		local eval $i="$(uci_get_by_type nps 0 $i)"
-	done;unset i
+	if [ -f /usr/local/bin/nps ] ; then
+		${LOGGER} "Moving nps to /usr/bin ..."
+		mv -f /usr/local/bin/nps /usr/bin/nps
+	fi
+	if [ -f /usr/local/bin/nps-update ] ; then
+		${LOGGER} "Moving nps-update to /usr/bin ..."
+		mv -f /usr/local/bin/nps-update /usr/bin/nps-update
+	fi
 
+	enable="$(uci_get_by_type nps 0 enable)"
 
 	if [ "$enable" = 1 ]
 	then
