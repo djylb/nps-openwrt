@@ -74,7 +74,9 @@ jobs:
 
           ./scripts/feeds update -a
           echo "CONFIG_PACKAGE_luci-app-npc=m" > .config
+          echo "CONFIG_PACKAGE_luci-app-nps=m" >> .config
           ./scripts/feeds install -d n luci-app-npc
+          ./scripts/feeds install -d n luci-app-nps
           make package/luci-app-npc/download -j8
 
       - name: Pre-generate configuration
@@ -85,13 +87,15 @@ jobs:
           echo "CONFIG_ALL=n" >> .config
           echo "CONFIG_AUTOREMOVE=n" >> .config
           echo "CONFIG_LUCI_LANG_zh_Hans=y" >> .config
-          echo "CONFIG_PACKAGE_luci-app-npc=m" > .config
+          echo "CONFIG_PACKAGE_luci-app-npc=m" >> .config
+          echo "CONFIG_PACKAGE_luci-app-nps=m" >> .config
           make defconfig
 
       - name: Build package
         run: |
           cd sdk
           make package/luci-app-npc/{clean,compile} -j$(nproc) V=s
+          make package/luci-app-nps/{clean,compile} -j$(nproc) V=s
 
       - name: Collect luci ipk
         run: |
@@ -234,7 +238,7 @@ jobs:
 
           ./scripts/feeds update -a
           echo "CONFIG_PACKAGE_npc=m" > .config
-          echo "CONFIG_PACKAGE_nps=m" > .config
+          echo "CONFIG_PACKAGE_nps=m" >> .config
           ./scripts/feeds install -d n npc
           ./scripts/feeds install -d n nps
           make package/npc/download -j8

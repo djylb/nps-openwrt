@@ -55,7 +55,6 @@ function update_button.write(self, section, value)
     luci.sys.call("/usr/bin/nps update")
     luci.sys.call("mv /usr/local/bin/nps /usr/bin/nps")
     luci.sys.call("mv /usr/local/bin/nps-update /usr/bin/nps-update")
-    luci.sys.call("/etc/init.d/nps restart")
     local is_running = luci.sys.call("pgrep -x nps > /dev/null") == 0
     if is_running then
         luci.sys.call("/etc/init.d/nps restart")
