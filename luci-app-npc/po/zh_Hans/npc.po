@@ -13,17 +13,23 @@ msgstr "(vkey) 例如: vkey1,vkey2..."
 msgid "(tcp|tls|kcp) e.g. tcp,tls..."
 msgstr "(tcp|tls|kcp) 例如: tcp,tls..."
 
-msgid "vkey"
-msgstr "唯一验证密钥"
+msgid "RUNNING"
+msgstr "运行中"
+
+msgid "NOT RUNNING"
+msgstr "未运行"
 
 msgid "Basic Setting"
 msgstr "基本设置"
 
-msgid "Protocol Type "
+msgid "Protocol Type"
 msgstr "协议类型"
 
 msgid "Server Address"
 msgstr "服务端地址"
+
+msgid "vkey"
+msgstr "唯一验证密钥"
 
 msgid "Update NPC"
 msgstr "更新 NPC"

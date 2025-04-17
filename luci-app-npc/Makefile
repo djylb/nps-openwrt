@@ -7,8 +7,8 @@ include $(TOPDIR)/rules.mk
 LUCI_TITLE:=LuCI support for NPC
 LUCI_DEPENDS:=+npc
 LUCI_PKGARCH:=all
-PKG_VERSION:=1.5
-PKG_RELEASE:=4
+PKG_VERSION:=1.6
+PKG_RELEASE:=1
 
 include $(TOPDIR)/feeds/luci/luci.mk
 

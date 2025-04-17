@@ -101,10 +101,11 @@ define Package/$(PKG_NAME)/install
 	$(INSTALL_DIR) $(1)/etc/nps/web
 
 	@if [ -f $(1)/etc/nps/conf/nps.conf ]; then \
-		echo "nps.conf exists, copying to nps.conf.new"; \
-		cp -f $(PKG_BUILD_DIR)/conf/nps.conf $(1)/etc/nps/conf/nps.conf.new; \
+		echo "nps.conf exists, only copying to nps.conf.default"; \
+		cp -f $(PKG_BUILD_DIR)/conf/nps.conf $(1)/etc/nps/conf/nps.conf.default; \
 	else \
 		cp $(PKG_BUILD_DIR)/conf/nps.conf $(1)/etc/nps/conf/; \
+		cp -f $(PKG_BUILD_DIR)/conf/nps.conf $(1)/etc/nps/conf/nps.conf.default; \
 	fi
 
 	$(CP) -rf $(PKG_BUILD_DIR)/web/* $(1)/etc/nps/web/
