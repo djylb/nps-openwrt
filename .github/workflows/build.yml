@@ -83,7 +83,11 @@ jobs:
       - name: Pre-generate configuration
         run: |
           cd sdk
-          echo "CONFIG_LUCI_LANG_zh_Hans=y" > .config
+          echo "CONFIG_ALL_NONSHARED=n" > .config
+          echo "CONFIG_ALL_KMODS=n" >> .config
+          echo "CONFIG_ALL=n" >> .config
+          echo "CONFIG_AUTOREMOVE=n" >> .config
+          echo "CONFIG_LUCI_LANG_zh_Hans=y" >> .config
           echo "CONFIG_PACKAGE_luci-app-npc=m" >> .config
           echo "CONFIG_PACKAGE_luci-app-nps=m" >> .config
           make defconfig
@@ -244,7 +248,11 @@ jobs:
       - name: Pre-generate configuration
         run: |
           cd sdk
-          echo "CONFIG_PACKAGE_npc=m" > .config
+          echo "CONFIG_ALL_NONSHARED=n" > .config
+          echo "CONFIG_ALL_KMODS=n" >> .config
+          echo "CONFIG_ALL=n" >> .config
+          echo "CONFIG_AUTOREMOVE=n" >> .config
+          echo "CONFIG_PACKAGE_npc=m" >> .config
           echo "CONFIG_PACKAGE_nps=m" >> .config
           make defconfig
 
