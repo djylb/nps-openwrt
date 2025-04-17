@@ -7,6 +7,14 @@ LOGGER="logger -t [NPC]"
 npc_Path="$(command -v npc)"
 
 start_service() {
+	if [ -f /usr/local/bin/npc ] ; then
+		${LOGGER} "Moving npc to /usr/bin ..."
+		mv -f /usr/local/bin/npc /usr/bin/npc
+	fi
+	if [ -f /usr/local/bin/npc-update ] ; then
+		${LOGGER} "Moving npc-update to /usr/bin ..."
+		mv -f /usr/local/bin/npc-update /usr/bin/npc-update
+	fi
 	local basic_list="enable server_addr protocol vkey"
 	for i in $(echo $basic_list);do
 		local eval $i="$(uci_get_by_type npc 0 $i)"

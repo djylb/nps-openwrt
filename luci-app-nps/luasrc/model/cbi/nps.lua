@@ -11,9 +11,10 @@ enable.rmempty = false
 enable.default = "0"
 
 local conf_file_path = "/etc/nps/conf/nps.conf"
-text_value = server_s:option(TextValue, "nps_conf", translate("NPS Configuration"))
+text_value = s:option(TextValue, "nps_conf", translate("NPS Configuration"))
 text_value.rows = 20
 text_value.wrap = "off"
+text_value.style = "width: 100%;"
 local conf_file = io.open(conf_file_path, "r")
 if conf_file then
     text_value.default = conf_file:read("*a")
