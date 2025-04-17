@@ -8,7 +8,7 @@ on:
     types: [trigger-update]
 
 jobs:
-  update-npc:
+  update:
     runs-on: ubuntu-latest
 
     steps:
@@ -42,8 +42,8 @@ jobs:
         run: |
           echo 'ARCH_LIST=amd64 386 arm64 arm_v7 arm_v6 arm_v5 mips mipsle mips64 mips64le loong64 riscv64' >> $GITHUB_ENV
 
-      - name: Download and hash each arch
-        id: hash
+      - name: Download and hash for NPC
+        id: hash_npc
         run: |
           mkdir -p npc_tmp
           cd npc_tmp
@@ -70,9 +70,40 @@ jobs:
               download_failed=1
             fi
           done
-          echo "DOWNLOAD_FAILED=$download_failed" >> $GITHUB_ENV
+          echo "NPC_DOWNLOAD_FAILED=$download_failed" >> $GITHUB_ENV
 
-      - name: Replace version and hash table in Makefile
+      - name: Download and hash for NPS
+        id: hash_nps
+        run: |
+          mkdir -p nps_tmp
+          cd nps_tmp
+          echo "NPS_HASHES:= \\" > ../nps/hashes.tmp
+          download_failed=0
+          arch_list=(${{ env.ARCH_LIST }})
+          arch_count=${#arch_list[@]}
+          last_index=$((arch_count - 1))
+          for i in $(seq 0 $last_index); do
+            arch="${arch_list[$i]}"
+            file="linux_${arch}_server.tar.gz"
+            url="https://github.com/djylb/nps/releases/download/v${{ env.LATEST_VERSION }}/$file"
+            echo "Downloading $file..."
+            if curl -sLO "$url"; then
+              hash=$(sha256sum "$file" | awk '{print $1}')
+              if [ $i -eq $last_index ]; then
+                echo "  $arch=$hash" >> ../nps/hashes.tmp
+              else
+                echo "  $arch=$hash \\" >> ../nps/hashes.tmp
+              fi
+            else
+              echo "  $arch=DOWNLOAD_FAILED \\" >> ../nps/hashes.tmp
+              echo "::warning::Failed to download $file"
+              download_failed=1
+            fi
+          done
+          echo "NPS_DOWNLOAD_FAILED=$download_failed" >> $GITHUB_ENV
+
+      - name: Replace version and hash table for NPC
+        if: env.NPC_DOWNLOAD_FAILED != '1'
         run: |
           sed -i "s/^PKG_VERSION:=.*/PKG_VERSION:=${{ env.LATEST_VERSION }}/" npc/Makefile
 
@@ -88,11 +119,28 @@ jobs:
             inside==0 {print}
           ' npc/Makefile > npc/Makefile.new && mv npc/Makefile.new npc/Makefile
 
+      - name: Replace version and hash table for NPS
+        if: env.NPS_DOWNLOAD_FAILED != '1'
+        run: |
+          sed -i "s/^PKG_VERSION:=.*/PKG_VERSION:=${{ env.LATEST_VERSION }}/" nps/Makefile
+
+          awk '
+            BEGIN {inside=0}
+            /^# === NPS_HASH_TABLE_START ===/ {
+              inside=1
+              print
+              system("cat nps/hashes.tmp")
+              next
+            }
+            /^# === NPS_HASH_TABLE_END ===/ {inside=0}
+            inside==0 {print}
+          ' nps/Makefile > nps/Makefile.new && mv nps/Makefile.new nps/Makefile
+
       - name: Save latest version to nps.ver
         run: echo -n ${{ env.LATEST_VERSION }} > nps.ver
 
       - name: Commit and push changes
-        if: env.DOWNLOAD_FAILED != '1'
+        if: env.NPC_DOWNLOAD_FAILED != '1' && env.NPS_DOWNLOAD_FAILED != '1'
         run: |
           git config --global user.name "djylb"
           git config --global user.email "duan@d-jy.net"
@@ -102,12 +150,12 @@ jobs:
             echo "No changes detected, skipping commit."
             exit 0
           else
-            git commit -m "Update NPC to $LATEST_VERSION"
+            git commit -m "Update NPS to $LATEST_VERSION"
             git push
           fi
 
       - name: Trigger Build
-        if: env.DOWNLOAD_FAILED != '1'
+        if: env.NPC_DOWNLOAD_FAILED != '1' && env.NPS_DOWNLOAD_FAILED != '1'
         run: |
           if [ "$CURRENT_VERSION" == "$LATEST_VERSION" ]; then
             echo "No update needed."

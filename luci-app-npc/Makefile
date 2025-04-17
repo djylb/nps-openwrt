@@ -4,7 +4,7 @@
 
 include $(TOPDIR)/rules.mk
 
-LUCI_TITLE:=LuCI support for NPS Client(NPC)
+LUCI_TITLE:=LuCI support for NPC
 LUCI_DEPENDS:=+npc
 LUCI_PKGARCH:=all
 PKG_VERSION:=1.5
