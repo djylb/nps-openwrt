@@ -144,7 +144,7 @@ jobs:
         run: |
           git config --global user.name "djylb"
           git config --global user.email "duan@d-jy.net"
-          git add nps.ver npc/Makefile
+          git add nps.ver npc/Makefile nps/Makefile
 
           if git diff --cached --quiet; then
             echo "No changes detected, skipping commit."
