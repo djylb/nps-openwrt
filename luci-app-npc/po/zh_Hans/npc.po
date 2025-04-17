@@ -10,17 +10,11 @@ msgstr "服务器域名或 IP 地址"
 msgid "vkey"
 msgstr "唯一验证密钥(vkey)"
 
-msgid "Enable TLS"
-msgstr "启用 TLS"
-
 msgid "Enable Compression"
 msgstr "压缩传输"
 
 msgid "Enable Encryption"
 msgstr "加密传输"
-
-msgid "Enable TLS requires server support, only works in TCP mode, helps prevent traffic fingerprinting."
-msgstr "启用 TLS 需服务端支持,仅在 TCP 模式下生效,可防止流量特征识别"
 
 msgid "The contents will be compressed to speed up the traffic forwarding speed, but this will consume some additional cpu resources."
 msgstr "启用压缩传输内容会加快流量转发速度,但是会额外消耗 CPU 资源"
@@ -31,14 +25,17 @@ msgstr "启用加密传输客户端与服务端之间的通信内容,会有效�
 msgid "Basic Setting"
 msgstr "基本设置"
 
-msgid "Protocol Type"
-msgstr "协议类型"
+msgid "Protocol Type (tcp|tls|kcp)"
+msgstr "协议类型 (tcp|tls|kcp)"
 
 msgid "Server Address"
 msgstr "服务端地址"
 
 msgid "TCP Protocol"
 msgstr "TCP"
+
+msgid "TLS Protocol"
+msgstr "TLS (加密)"
 
 msgid "KCP Protocol"
 msgstr "KCP"

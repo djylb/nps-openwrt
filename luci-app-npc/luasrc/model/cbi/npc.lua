@@ -22,14 +22,11 @@ vkey = s:option(Value, "vkey", translate("vkey"))
 vkey.password = true
 vkey.rmempty = false
 
-protocol = s:option(ListValue, "protocol", translate("Protocol Type"))
+protocol = s:option(ListValue, "protocol", translate("Protocol Type (tcp|tls|kcp)"))
 protocol.default = "tcp"
 protocol:value("tcp", translate("TCP Protocol"))
+protocol:value("tls", translate("TLS Protocol"))
 protocol:value("kcp", translate("KCP Protocol"))
-
-tls_enable = s:option(Flag, "tls_enable", translate("Enable TLS"), translate("Enable TLS requires server support, only works in TCP mode, helps prevent traffic fingerprinting."))
-tls_enable.default = "0"
-tls_enable.rmempty = false
 
 max_conn = s:option(Value, "max_conn", translate("Max Connection Limit"), translate("Maximum number of connections (Not necessary)"))
 max_conn.optional = true
