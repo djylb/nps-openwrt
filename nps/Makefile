@@ -3,7 +3,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=nps
-PKG_VERSION:=0.26.47
+PKG_VERSION:=0.26.48
 PKG_RELEASE:=1
 PKG_LICENSE:=Apache-2.0
 PKG_MAINTAINER:=Duan <duan@d-jy.net>
@@ -57,18 +57,18 @@ PKG_SOURCE_URL:=$(NPS_URL)/releases/download/v$(PKG_VERSION)/
 
 # === NPS_HASH_TABLE_START ===
 NPS_HASHES:= \
-  amd64=XXXX \
-  386=XXXX \
-  arm64=XXXX \
-  arm_v7=XXXX \
-  arm_v6=XXXX \
-  arm_v5=XXXX \
-  mips=XXXX \
-  mipsle=XXXX \
-  mips64=XXXX \
-  mips64le=XXXX \
-  loong64=XXXX \
-  riscv64=XXXX
+  amd64=b2edc1a8e346fd0e242fee061954b8064648fcd5d6b50b247d3a3d6c181d407c \
+  386=378e40a18223413c69832889142ec8a674d622460a02a26f5f2461198197e604 \
+  arm64=2f16acb552021a5e1d9843fcbccc3f878ee0194ce44b8c00f945200548e8daf0 \
+  arm_v7=f16f3c1cd2c5c00c846540140a3b3e41bdca3015f51eb5f3e63811a875ace610 \
+  arm_v6=a00df639f6aefbdbe77d16b6f00d787be32afe2dd5ececfb483920988c2a0034 \
+  arm_v5=8d53491859570017262e1c51214ef74283317d6f71370ca5548607b7dfc7158c \
+  mips=c3732ec80cffbd04005302cdf9f556b4b775107be7b3041cd1666ada005fdd48 \
+  mipsle=c220df9b98e2fcedf542a81586ab7926b0c4f9b56e0ddbcc6d6757392a5a25b7 \
+  mips64=4680a814de90c54c7c3f51b8c40fa72e7ab50def170593d3060560574aae8997 \
+  mips64le=de7fd0abb7e31616f5a7f4e88166e7a0ed72351f68a9884c7742161adad8c4c1 \
+  loong64=8a0607cb9012fb9dfd44edb6fa1532730b22a8d6bb3235c0199e8bb515a4c641 \
+  riscv64=6694c7e51cb226a843497190b800eb098cb09fb5209df6bed8e8278508fa4013
 # === NPS_HASH_TABLE_END ===
 
 PKG_HASH:=$(strip $(foreach pair,$(NPS_HASHES), $(if $(findstring $(NPS_ARCH),$(pair)),$(word 2, $(subst =, ,$(pair))))))
