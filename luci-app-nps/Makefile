@@ -7,7 +7,7 @@ LUCI_TITLE:=LuCI support for NPS
 LUCI_DEPENDS:=+nps
 LUCI_PKGARCH:=all
 PKG_VERSION:=1.7
-PKG_RELEASE:=1
+PKG_RELEASE:=3
 
 include $(TOPDIR)/feeds/luci/luci.mk
 

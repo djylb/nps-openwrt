@@ -16,8 +16,8 @@ msgstr "未运行"
 msgid "Update NPS"
 msgstr "更新 NPS"
 
-msgid "Update completed. The application will stop. Please manually enable the service again."
-msgstr "更新操作完成后,应用将停止,请手动重新启用服务"
+msgid "Click to update to the latest version"
+msgstr "点击即可更新到最新版本"
 
 msgid "Default Config"
 msgstr "默认配置"

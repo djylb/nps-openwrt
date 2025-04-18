@@ -20,12 +20,15 @@ vkey.rmempty = false
 protocol = s:option(Value, "protocol", translate("Protocol Type"), translate("(tcp|tls|kcp) e.g. tcp,tls..."))
 protocol.default = "tcp"
 
-update_button = s:option(Button, "update_button", translate("Update NPC"), translate("Update completed. The application will stop. Please manually enable the service again."))
+update_button = s:option(Button, "update_button", translate("Update NPC"), translate("Click to update to the latest version"))
 update_button.modal = false
 function update_button.write(self, section, value)
     luci.http.redirect(luci.dispatcher.build_url("admin", "services", "npc"))
-    luci.sys.call("/etc/init.d/npc stop")
+    local is_running = luci.sys.call("pgrep -f npc > /dev/null") == 0
     luci.sys.call("/usr/bin/npc update")
+    if is_running then
+        luci.sys.call("/etc/init.d/npc restart")
+    end
 end
 
 github_button = s:option(Button, "github_button", "Github", "https://github.com/djylb/nps-openwrt")

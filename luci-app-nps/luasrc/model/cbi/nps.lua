@@ -57,12 +57,15 @@ function text_value.write(self, section, value)
     end
 end
 
-update_button = s:option(Button, "update_button", translate("Update NPS"), translate("Update completed. The application will stop. Please manually enable the service again."))
+update_button = s:option(Button, "update_button", translate("Update NPS"), translate("Click to update to the latest version"))
 update_button.modal = false
 function update_button.write(self, section, value)
     luci.http.redirect(luci.dispatcher.build_url("admin", "services", "nps"))
-    luci.sys.call("/etc/init.d/nps stop")
+    local is_running = luci.sys.call("pgrep -f nps > /dev/null") == 0
     luci.sys.call("/usr/bin/nps update")
+    if is_running then
+        luci.sys.call("/etc/init.d/nps restart")
+    end
 end
 
 default_button = s:option(Button, "default_button", translate("Default Config"), translate("Clicking this button will replace the current configuration with the default configuration file."))
