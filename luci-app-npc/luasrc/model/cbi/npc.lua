@@ -20,6 +20,9 @@ vkey.rmempty = false
 protocol = s:option(Value, "protocol", translate("Protocol Type"), translate("(tcp|tls|kcp) e.g. tcp,tls..."))
 protocol.default = "tcp"
 
+dns = s:option(Value, "dns", translate("DNS Server"), translate("e.g. 8.8.8.8"))
+dns.default = ""
+
 update_button = s:option(Button, "update_button", translate("Update NPC"), translate("Click to update to the latest version"))
 update_button.modal = false
 function update_button.write(self, section, value)

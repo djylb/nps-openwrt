@@ -15,7 +15,7 @@ start_service() {
 		${LOGGER} "Moving npc-update to /usr/bin ..."
 		mv -f /usr/local/bin/npc-update /usr/bin/npc-update
 	fi
-	local basic_list="enable server_addr protocol vkey"
+	local basic_list="enable server_addr protocol vkey dns"
 	for i in $(echo $basic_list);do
 		local eval $i="$(uci_get_by_type npc 0 $i)"
 	done;unset i
@@ -25,7 +25,7 @@ start_service() {
 	then
 		${LOGGER} "Starting NPS Client(NPC) ..."
 		procd_open_instance
-		procd_set_param command $npc_Path -server=${server_addr} -vkey=${vkey} -type=${protocol} -log=off
+		procd_set_param command $npc_Path -server=${server_addr} -vkey=${vkey} -type=${protocol} -dns_server=${dns} -log=off
 		procd_set_param respawn
 		procd_set_param stdout 1
 		procd_set_param stderr 1

@@ -13,6 +13,9 @@ msgstr "(vkey) 例如: vkey1,vkey2..."
 msgid "(tcp|tls|kcp) e.g. tcp,tls..."
 msgstr "(tcp|tls|kcp) 例如: tcp,tls..."
 
+msgid "e.g. 8.8.8.8"
+msgstr "例如: 8.8.8.8"
+
 msgid "RUNNING"
 msgstr "运行中"
 
@@ -30,6 +33,9 @@ msgstr "服务端地址"
 
 msgid "vkey"
 msgstr "唯一验证密钥"
+
+msgid "DNS Server"
+msgstr "DNS 服务器"
 
 msgid "Update NPC"
 msgstr "更新 NPC"
