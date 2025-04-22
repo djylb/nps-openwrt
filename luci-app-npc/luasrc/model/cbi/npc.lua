@@ -1,4 +1,13 @@
 m = Map("npc", translate("NPS Client"), translate("Nps is a fast reverse proxy to help you expose a local server behind a NAT or firewall to the internet."))
+m.apply_on_parse = true
+function m.on_after_commit(self)
+	local enabled = luci.model.uci.cursor():get("npc", "@npc[0]", "enable")
+	if enabled == "1" then
+		luci.sys.call("/etc/init.d/npc restart >/dev/null 2>&1")
+	else
+		luci.sys.call("/etc/init.d/npc stop >/dev/null 2>&1")
+	end
+end
 
 m:section(SimpleSection).template = "npc/npc_status"
 
