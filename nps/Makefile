@@ -34,7 +34,7 @@ ifeq ($(ARCH),arm)
 	endif
 endif
 ifeq ($(filter mipsel,$(ARCH)),mipsel)
-	NPS_ARCH:=mipsle
+	NPS_ARCH:=mipsle_softfloat
 endif
 ifeq ($(filter mips64el,$(ARCH)),mips64el)
 	NPS_ARCH:=mips64le
@@ -43,7 +43,7 @@ ifeq ($(filter mips64,$(ARCH)),mips64)
 	NPS_ARCH:=mips64
 endif
 ifeq ($(filter mips,$(ARCH)),mips)
-	NPS_ARCH:=mips
+	NPS_ARCH:=mips_softfloat
 endif
 ifeq ($(filter loongarch64,$(ARCH)),loongarch64)
 	NPS_ARCH:=loong64
