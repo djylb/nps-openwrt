@@ -40,7 +40,7 @@ jobs:
       - name: Define architecture map
         id: archs
         run: |
-          echo 'ARCH_LIST=amd64 386 arm64 arm_v7 arm_v6 arm_v5 mips mipsle mips64 mips64le loong64 riscv64' >> $GITHUB_ENV
+          echo 'ARCH_LIST=amd64 386 arm64 arm_v7 arm_v6 arm_v5 mips_softfloat mipsle_softfloat mips64 mips64le loong64 riscv64' >> $GITHUB_ENV
 
       - name: Download and hash for NPC
         id: hash_npc
