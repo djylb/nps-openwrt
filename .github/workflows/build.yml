@@ -111,7 +111,7 @@ jobs:
           path: release/luci/*.ipk
 
       - name: Upload release assets
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v2.2.2
         with:
           tag_name: v${{ env.NPS_VERSION }}
           files: release/luci/*.ipk
@@ -269,7 +269,7 @@ jobs:
           path: release/bin/${{ matrix.platform }}/*.ipk
 
       - name: Upload release assets for ${{ matrix.platform }}
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v2.2.2
         with:
           tag_name: v${{ env.NPS_VERSION }}
           files: release/bin/${{ matrix.platform }}/*.ipk
