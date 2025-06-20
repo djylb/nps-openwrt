@@ -36,11 +36,7 @@ update_button = s:option(Button, "update_button", translate("Update NPC"), trans
 update_button.modal = false
 function update_button.write(self, section, value)
     luci.http.redirect(luci.dispatcher.build_url("admin", "services", "npc"))
-    local is_running = luci.sys.call("pgrep -f npc > /dev/null") == 0
-    luci.sys.call("/usr/bin/npc update")
-    if is_running then
-        luci.sys.call("/etc/init.d/npc restart")
-    end
+    luci.sys.call("( /usr/bin/npc update && /etc/init.d/npc restart ) >/tmp/npc_update.log 2>&1 &")
 end
 
 github_button = s:option(Button, "github_button", "Github", "https://github.com/djylb/nps-openwrt")

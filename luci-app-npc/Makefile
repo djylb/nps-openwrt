@@ -8,8 +8,12 @@ LUCI_TITLE:=LuCI support for NPC
 LUCI_DEPENDS:=+npc
 LUCI_PKGARCH:=all
 PKG_VERSION:=1.7
-PKG_RELEASE:=5
+PKG_RELEASE:=6
 
 include $(TOPDIR)/feeds/luci/luci.mk
+
+define Package/luci-app-npc/conffiles
+/etc/config/npc
+endef
 
 # call BuildPackage - OpenWrt buildroot signature

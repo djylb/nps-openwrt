@@ -61,16 +61,13 @@ update_button = s:option(Button, "update_button", translate("Update NPS"), trans
 update_button.modal = false
 function update_button.write(self, section, value)
     luci.http.redirect(luci.dispatcher.build_url("admin", "services", "nps"))
-    local is_running = luci.sys.call("pgrep -f nps > /dev/null") == 0
-    luci.sys.call("/usr/bin/nps update")
-    if is_running then
-        luci.sys.call("/etc/init.d/nps restart")
-    end
+    luci.sys.call("( /usr/bin/nps update && /etc/init.d/nps restart ) >/tmp/nps_update.log 2>&1 &")
 end
 
 default_button = s:option(Button, "default_button", translate("Default Config"), translate("Clicking this button will replace the current configuration with the default configuration file."))
 default_button.modal = false
 function default_button.write(self, section, value)
+    luci.sys.call(string.format("[ -f %s ] && cp %s %s.bak.$(date +%%Y%%m%%d%%H%%M%%S)", conf_file_path, conf_file_path, conf_file_path))
     local default_conf_file = io.open("/etc/nps/conf/nps.conf.default", "r")
     if default_conf_file then
         local default_content = default_conf_file:read("*a")

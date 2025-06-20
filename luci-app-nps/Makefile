@@ -7,8 +7,12 @@ LUCI_TITLE:=LuCI support for NPS
 LUCI_DEPENDS:=+nps
 LUCI_PKGARCH:=all
 PKG_VERSION:=1.7
-PKG_RELEASE:=3
+PKG_RELEASE:=6
 
 include $(TOPDIR)/feeds/luci/luci.mk
+
+define Package/luci-app-nps/conffiles
+/etc/config/nps
+endef
 
 # call BuildPackage - OpenWrt buildroot signature

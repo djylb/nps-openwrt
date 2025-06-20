@@ -4,5 +4,5 @@ config npc
 	option server_addr '1.2.3.4:123'
 	option protocol 'tcp'
 	option vkey 'abcdefg'
-	option dns '127.0.0.1:53'
+	option dns ''
 
