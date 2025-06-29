@@ -116,6 +116,7 @@ jobs:
           tag_name: v${{ env.NPS_VERSION }}
           files: release/luci/*.ipk
           prerelease: false
+          update_existing_release: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -274,5 +275,6 @@ jobs:
           tag_name: v${{ env.NPS_VERSION }}
           files: release/bin/${{ matrix.platform }}/*.ipk
           prerelease: false
+          update_existing_release: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
