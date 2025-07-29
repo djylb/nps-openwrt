@@ -1,7 +1,7 @@
 msgid "NPS Client"
 msgstr "NPS 内网穿透客户端"
 
-msgid "Nps is a fast reverse proxy to help you expose a local server behind a NAT or firewall to the internet."
+msgid "NPS is a fast reverse proxy to help you expose a local server behind a NAT or firewall to the internet."
 msgstr "NPS 是一种快速反向代理,可帮助您将 NAT 或防火墙后的本地服务器公开到 Internet"
 
 msgid "(host:port) e.g. xxx.com:8024,yyy.com:8025..."
@@ -15,6 +15,9 @@ msgstr "(tcp|tls|kcp) 例如: tcp,tls..."
 
 msgid "e.g. 8.8.8.8"
 msgstr "例如: 8.8.8.8"
+
+msgid "Additional NPC arguments, e.g. '-xxx=yyy -aaa=bbb'"
+msgstr "其他 NPC 参数，例如: '-xxx=yyy -aaa=bbb'"
 
 msgid "RUNNING"
 msgstr "运行中"
@@ -36,6 +39,9 @@ msgstr "唯一验证密钥"
 
 msgid "DNS Server"
 msgstr "DNS 服务器"
+
+msgid "Extra Arguments"
+msgstr "额外参数"
 
 msgid "Update NPC"
 msgstr "更新 NPC"

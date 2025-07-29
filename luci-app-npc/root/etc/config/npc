@@ -5,4 +5,5 @@ config npc
 	option protocol 'tcp'
 	option vkey 'abcdefg'
 	option dns ''
+	option extra_args '-debug=false -log=off'
 

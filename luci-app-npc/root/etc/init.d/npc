@@ -15,28 +15,48 @@ start_service() {
 		${LOGGER} "Moving npc-update to /usr/bin ..."
 		mv -f /usr/local/bin/npc-update /usr/bin/npc-update
 	fi
-	local basic_list="enable server_addr protocol vkey dns"
+	local basic_list="enable server_addr protocol vkey dns extra_args"
 	for i in $(echo $basic_list);do
 		local eval $i="$(uci_get_by_type npc 0 $i)"
 	done;unset i
 
-
-	if [ "$enable" = 1 ]
-	then
-		${LOGGER} "Starting NPS Client(NPC) ..."
-		procd_open_instance
-		procd_set_param command $npc_Path -server=${server_addr} -vkey=${vkey} -type=${protocol} -dns_server=${dns} -log=off
-		procd_set_param respawn
-		procd_set_param stdout 1
-		procd_set_param stderr 1
-		procd_close_instance
-	else
-		${LOGGER} "NPS Client(NPC) Service is now disabled ..."
+	if [ "$enable" != "1" ]; then
+		${LOGGER} "NPS Client(NPC) is disabled"
+		return
 	fi
+
+	${LOGGER} "Starting NPS Client(NPC) ..."
+
+	cmd_args=""
+	if ! printf '%s\n' "$extra_args" | grep -q -- '\-server='; then
+		cmd_args="$cmd_args -server=${server_addr}"
+	fi
+	if ! printf '%s\n' "$extra_args" | grep -q -- '\-vkey='; then
+		cmd_args="$cmd_args -vkey=${vkey}"
+	fi
+	if ! printf '%s\n' "$extra_args" | grep -q -- '\-type='; then
+		cmd_args="$cmd_args -type=${protocol}"
+	fi
+	if ! printf '%s\n' "$extra_args" | grep -q -- '\-dns_server='; then
+		cmd_args="$cmd_args -dns_server=${dns}"
+	fi
+
+	[ -n "$extra_args" ] && cmd_args="$cmd_args $extra_args"
+
+	if ! printf '%s\n' "$cmd_args" | grep -q -- '\-log='; then
+		cmd_args="$cmd_args -log=off"
+	fi
+
+	procd_open_instance
+	procd_set_param command $npc_Path $cmd_args
+	procd_set_param respawn
+	procd_set_param stdout 1
+	procd_set_param stderr 1
+	procd_close_instance
 }
 
 stop_service() {
-	$LOGGER "Stopping NPS Client(NPC) ..."
+	${LOGGER} "Stopping NPS Client(NPC) ..."
 }
 
 service_triggers() {

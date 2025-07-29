@@ -5,10 +5,10 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-nps
 PKG_VERSION:=1.7
-PKG_RELEASE:=7
+PKG_RELEASE:=8
 
 LUCI_TITLE:=LuCI support for NPS
-LUCI_DEPENDS:=+nps
+#LUCI_DEPENDS:=+nps
 LUCI_PKGARCH:=all
 
 define Package/$(PKG_NAME)/conffiles

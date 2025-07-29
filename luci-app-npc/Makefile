@@ -6,10 +6,10 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-npc
 PKG_VERSION:=1.7
-PKG_RELEASE:=7
+PKG_RELEASE:=8
 
 LUCI_TITLE:=LuCI support for NPC
-LUCI_DEPENDS:=+npc
+#LUCI_DEPENDS:=+npc
 LUCI_PKGARCH:=all
 
 define Package/$(PKG_NAME)/conffiles

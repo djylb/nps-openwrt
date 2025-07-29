@@ -11,7 +11,7 @@ end
 
 m:section(SimpleSection).template = "npc/npc_status"
 
-s = m:section(TypedSection,"npc")
+s = m:section(TypedSection, "npc")
 s.addremove = false
 s.anonymous = true
 
@@ -32,18 +32,22 @@ protocol.default = "tcp"
 dns = s:option(Value, "dns", translate("DNS Server"), translate("e.g. 8.8.8.8"))
 dns.default = ""
 
+extra_args = s:option(Value, "extra_args", translate("Extra Arguments"), translate("Additional npc arguments, e.g. '-xxx=yyy -aaa=bbb'"))
+extra_args.rmempty = true
+extra_args.default = ""
+
 update_button = s:option(Button, "update_button", translate("Update NPC"), translate("Click to update to the latest version"))
 update_button.modal = false
 function update_button.write(self, section, value)
-    luci.http.redirect(luci.dispatcher.build_url("admin", "services", "npc"))
-    luci.sys.call("( /usr/bin/npc update && /etc/init.d/npc restart ) >/tmp/npc_update.log 2>&1 &")
+	luci.http.redirect(luci.dispatcher.build_url("admin", "services", "npc"))
+	luci.sys.call("( /usr/bin/npc update && /etc/init.d/npc restart ) >/tmp/npc_update.log 2>&1 &")
 end
 
 github_button = s:option(Button, "github_button", "Github", "https://github.com/djylb/nps-openwrt")
 github_button.modal = false
 function github_button.write(self, section, value)
-    luci.http.status(200)
-    luci.http.redirect("https://github.com/djylb/nps-openwrt")
+	luci.http.status(200)
+	luci.http.redirect("https://github.com/djylb/nps-openwrt")
 end
 
 return m
