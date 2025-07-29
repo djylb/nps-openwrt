@@ -1,4 +1,4 @@
-m = Map("npc", translate("NPS Client"), translate("Nps is a fast reverse proxy to help you expose a local server behind a NAT or firewall to the internet."))
+m = Map("npc", translate("NPS Client"), translate("NPS is a fast reverse proxy to help you expose a local server behind a NAT or firewall to the internet."))
 m.apply_on_parse = true
 function m.on_after_commit(self)
 	local enabled = luci.model.uci.cursor():get("npc", "@npc[0]", "enable")
@@ -32,7 +32,7 @@ protocol.default = "tcp"
 dns = s:option(Value, "dns", translate("DNS Server"), translate("e.g. 8.8.8.8"))
 dns.default = ""
 
-extra_args = s:option(Value, "extra_args", translate("Extra Arguments"), translate("Additional npc arguments, e.g. '-xxx=yyy -aaa=bbb'"))
+extra_args = s:option(Value, "extra_args", translate("Extra Arguments"), translate("Additional NPC arguments, e.g. '-xxx=yyy -aaa=bbb'"))
 extra_args.rmempty = true
 extra_args.default = ""
 

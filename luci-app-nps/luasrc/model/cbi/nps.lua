@@ -1,4 +1,4 @@
-m = Map("nps", translate("NPS Server"), translate("Nps is a fast reverse proxy to help you expose a local server behind a NAT or firewall to the internet."))
+m = Map("nps", translate("NPS Server"), translate("NPS is a fast reverse proxy to help you expose a local server behind a NAT or firewall to the internet."))
 m.apply_on_parse = true
 function m.on_after_commit(self)
 	local enabled = luci.model.uci.cursor():get("nps", "@nps[0]", "enable")
