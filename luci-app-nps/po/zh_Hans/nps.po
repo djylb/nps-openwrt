@@ -19,6 +19,12 @@ msgstr "更新 NPS"
 msgid "Click to update to the latest version"
 msgstr "点击即可更新到最新版本"
 
+msgid "Install NPS"
+msgstr "安装 NPS"
+
+msgid "Click to install or update NPS via script"
+msgstr "点击通过脚本安装或更新 NPS"
+
 msgid "Default Config"
 msgstr "默认配置"
 
