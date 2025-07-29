@@ -4,8 +4,8 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-nps
-PKG_VERSION:=1.7
-PKG_RELEASE:=9
+PKG_VERSION:=1.8
+PKG_RELEASE:=1
 
 LUCI_TITLE:=LuCI support for NPS
 #LUCI_DEPENDS:=+nps

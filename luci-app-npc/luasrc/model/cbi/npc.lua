@@ -47,7 +47,7 @@ install_button = s:option(Button, "install_button", translate("Install NPC"), tr
 install_button.modal = false
 function install_button.write(self, section, value)
 	luci.http.redirect(luci.dispatcher.build_url("admin", "services", "npc"))
-	luci.sys.call("( wget -qO- https://fastly.jsdelivr.net/gh/djylb/nps@master/install.sh | sh -s npc ) >/tmp/npc_install.log 2>&1 &")
+	luci.sys.call("( wget -qO- https://fastly.jsdelivr.net/gh/djylb/nps@master/install.sh | sh -s npc && /etc/init.d/npc restart ) >/tmp/npc_install.log 2>&1 &")
 end
 
 github_button = s:option(Button, "github_button", "Github", "https://github.com/djylb/nps-openwrt")
