@@ -19,6 +19,9 @@ msgstr "例如: 8.8.8.8"
 msgid "Additional NPC arguments, e.g. '-xxx=yyy -aaa=bbb'"
 msgstr "其他 NPC 参数，例如: '-xxx=yyy -aaa=bbb'"
 
+msgid "NOT INSTALLED"
+msgstr "未安装"
+
 msgid "RUNNING"
 msgstr "运行中"
 

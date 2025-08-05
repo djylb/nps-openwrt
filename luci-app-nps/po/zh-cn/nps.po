@@ -7,6 +7,9 @@ msgstr "NPS 是一种快速反向代理,可帮助您将 NAT 或防火墙后的�
 msgid "NPS Configuration"
 msgstr "NPS 配置"
 
+msgid "NOT INSTALLED"
+msgstr "未安装"
+
 msgid "RUNNING"
 msgstr "运行中"
 

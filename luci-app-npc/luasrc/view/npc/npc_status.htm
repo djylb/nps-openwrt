@@ -3,11 +3,12 @@ XHR.poll(3, '<%=url([[admin]], [[services]], [[npc]], [[status]])%>', null,
 	function(x, data) {
 		var tb = document.getElementById('npc_status');
 		if (data && tb) {
-			if (data.running) {
-				var links = '<em><b><font color=green>NPS Client <%:RUNNING%></font></b></em>';
-				tb.innerHTML = links;
+			if (!data.installed) {
+				tb.innerHTML = '<em><b><font color="red">NPC <%:NOT INSTALLED%></font></b></em>';
+			} else if (data.running) {
+				tb.innerHTML = '<em><b><font color=green>NPC(' + data.version + ') <%:RUNNING%></font></b></em>';
 			} else {
-				tb.innerHTML = '<em><b><font color=red>NPS Client <%:NOT RUNNING%></font></b></em>';
+				tb.innerHTML = '<em><b><font color=red>NPC(' + data.version + ') <%:NOT RUNNING%></font></b></em>';
 			}
 		}
 	}
