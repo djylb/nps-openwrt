@@ -40,7 +40,7 @@ update_button = s:option(Button, "update_button", translate("Update NPC"), trans
 update_button.modal = false
 function update_button.write(self, section, value)
 	luci.http.redirect(luci.dispatcher.build_url("admin", "services", "npc"))
-	luci.sys.call("( /usr/bin/npc update && /etc/init.d/npc restart ) >/tmp/npc_update.log 2>&1 &")
+	luci.sys.call("( /usr/bin/npc update -dns_server= && /etc/init.d/npc restart ) >/tmp/npc_update.log 2>&1 &")
 end
 
 install_button = s:option(Button, "install_button", translate("Install NPC"), translate("Click to install or update NPC via script"))
