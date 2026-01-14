@@ -16,9 +16,19 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - sdk_ver: "24.10"
+          # ipk (24.10.5)
+          - pkg_format: ipk
+            pkg_ext: ipk
+            sdk_ver: "24.10.5"
             luci_ver: "24.10"
-            sdk_url: "https://downloads.openwrt.org/releases/24.10.1/targets/x86/64/openwrt-sdk-24.10.1-x86-64_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
+            sdk_url: "https://downloads.openwrt.org/releases/24.10.5/targets/x86/64/openwrt-sdk-24.10.5-x86-64_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
+          # apk (snapshots)
+          - pkg_format: apk
+            pkg_ext: apk
+            sdk_ver: "snapshot"
+            luci_ver: "snapshot"
+            sdk_url: "https://downloads.openwrt.org/snapshots/targets/x86/64/openwrt-sdk-x86-64_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -44,7 +54,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: cache-sdk
-          key: openwrt-sdk-${{ matrix.sdk_ver }}-amd64
+          key: openwrt-sdk-${{ matrix.sdk_ver }}-${{ matrix.pkg_format }}-amd64
 
       - name: Download SDK
         if: steps.cache-sdk.outputs.cache-hit != 'true'
@@ -68,9 +78,12 @@ jobs:
       - name: Update feeds & install package
         run: |
           cd sdk
-          echo "src-git nps https://github.com/${{ github.repository }}.git" > feeds.conf
-          echo "src-git base https://github.com/openwrt/openwrt.git;openwrt-${{ matrix.sdk_ver }}" >> feeds.conf
-          echo "src-git luci https://github.com/openwrt/luci.git;openwrt-${{ matrix.luci_ver }}" >> feeds.conf
+
+          cat > feeds.tmp <<EOF
+          src-git nps https://github.com/${{ github.repository }}.git
+          EOF
+          cat feeds.conf.default >> feeds.tmp
+          mv feeds.tmp feeds.conf.default
 
           ./scripts/feeds update -a
           echo "CONFIG_PACKAGE_luci-app-npc=m" > .config
@@ -98,23 +111,23 @@ jobs:
           make package/luci-app-npc/{clean,compile} -j$(nproc) V=s
           make package/luci-app-nps/{clean,compile} -j$(nproc) V=s
 
-      - name: Collect luci ipk
+      - name: Collect luci packages
         run: |
           cd sdk
-          mkdir -p ../release/luci
-          cp bin/packages/*/nps/luci*.ipk ../release/luci/
+          mkdir -p ../release/luci/${{ matrix.pkg_format }}
+          cp bin/packages/*/nps/luci*.${{ matrix.pkg_ext }} ../release/luci/${{ matrix.pkg_format }}/
 
       - name: Upload luci artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: luci-${{ matrix.luci_ver }}-${{ matrix.sdk_ver }}
-          path: release/luci/*.ipk
+          name: luci-${{ matrix.pkg_format }}-${{ matrix.luci_ver }}-${{ matrix.sdk_ver }}
+          path: release/luci/${{ matrix.pkg_format }}/*.${{ matrix.pkg_ext }}
 
       - name: Upload release assets
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.NPS_VERSION }}
-          files: release/luci/*.ipk
+          files: release/luci/${{ matrix.pkg_format }}/*.${{ matrix.pkg_ext }}
           prerelease: false
           update_existing_release: true
         env:
@@ -127,60 +140,190 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: amd64
-            sdk_url: "https://downloads.openwrt.org/releases/24.10.1/targets/x86/64/openwrt-sdk-24.10.1-x86-64_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
-            sdk_ver: "24.10"
-          - platform: aarch64_generic
-            sdk_url: "https://downloads.openwrt.org/releases/24.10.1/targets/rockchip/armv8/openwrt-sdk-24.10.1-rockchip-armv8_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
-            sdk_ver: "24.10"
-          - platform: aarch64_cortex-a53
-            sdk_url: "https://downloads.openwrt.org/releases/24.10.1/targets/mvebu/cortexa53/openwrt-sdk-24.10.1-mvebu-cortexa53_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
-            sdk_ver: "24.10"
-          - platform: aarch64_cortex-a72
-            sdk_url: "https://downloads.openwrt.org/releases/24.10.1/targets/mvebu/cortexa72/openwrt-sdk-24.10.1-mvebu-cortexa72_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
-            sdk_ver: "24.10"
-          - platform: arm_cortex-a5_vfpv4
-            sdk_url: "https://downloads.openwrt.org/releases/24.10.1/targets/at91/sama5/openwrt-sdk-24.10.1-at91-sama5_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst"
-            sdk_ver: "24.10"
-          - platform: arm_cortex-a7
-            sdk_url: "https://downloads.openwrt.org/releases/24.10.1/targets/mediatek/mt7629/openwrt-sdk-24.10.1-mediatek-mt7629_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst"
-            sdk_ver: "24.10"
-          - platform: arm_cortex-a7_neon-vfpv4
-            sdk_url: "https://downloads.openwrt.org/releases/24.10.1/targets/sunxi/cortexa7/openwrt-sdk-24.10.1-sunxi-cortexa7_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst"
-            sdk_ver: "24.10"
-          - platform: arm_cortex-a8_vfpv3
-            sdk_url: "https://downloads.openwrt.org/releases/24.10.1/targets/sunxi/cortexa8/openwrt-sdk-24.10.1-sunxi-cortexa8_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst"
-            sdk_ver: "24.10"
-          - platform: arm_cortex-a9
-            sdk_url: "https://downloads.openwrt.org/releases/24.10.1/targets/bcm53xx/generic/openwrt-sdk-24.10.1-bcm53xx-generic_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst"
-            sdk_ver: "24.10"
-          - platform: arm_cortex-a9_neon
-            sdk_url: "https://downloads.openwrt.org/releases/24.10.1/targets/zynq/generic/openwrt-sdk-24.10.1-zynq-generic_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst"
-            sdk_ver: "24.10"
-          - platform: arm_cortex-a9_vfpv3-d16
-            sdk_url: "https://downloads.openwrt.org/releases/24.10.1/targets/mvebu/cortexa9/openwrt-sdk-24.10.1-mvebu-cortexa9_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst"
-            sdk_ver: "24.10"
-          - platform: arm_cortex-a15_neon-vfpv4
-            sdk_url: "https://downloads.openwrt.org/releases/24.10.1/targets/ipq806x/generic/openwrt-sdk-24.10.1-ipq806x-generic_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst"
-            sdk_ver: "24.10"
-          - platform: mips_mips32
-            sdk_url: "https://downloads.openwrt.org/releases/24.10.1/targets/bcm53xx/generic/openwrt-sdk-24.10.1-bcm53xx-generic_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst"
-            sdk_ver: "24.10"
-          - platform: mipsel_24kc
-            sdk_url: "https://downloads.openwrt.org/releases/24.10.1/targets/ramips/rt288x/openwrt-sdk-24.10.1-ramips-rt288x_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
-            sdk_ver: "24.10"
-          - platform: mipsel_74kc
-            sdk_url: "https://downloads.openwrt.org/releases/24.10.1/targets/ramips/rt3883/openwrt-sdk-24.10.1-ramips-rt3883_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
-            sdk_ver: "24.10"
-          - platform: mipsel_mips32
-            sdk_url: "https://downloads.openwrt.org/releases/24.10.1/targets/bcm47xx/generic/openwrt-sdk-24.10.1-bcm47xx-generic_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
-            sdk_ver: "24.10"
-          - platform: riscv64
-            sdk_url: "https://downloads.openwrt.org/releases/24.10.1/targets/starfive/generic/openwrt-sdk-24.10.1-starfive-generic_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
-            sdk_ver: "24.10"
-          - platform: loongarch64
-            sdk_url: "https://downloads.openwrt.org/releases/24.10.1/targets/loongarch64/generic/openwrt-sdk-24.10.1-loongarch64-generic_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
-            sdk_ver: "24.10"
+          # ---------------- ipk (24.10.5) ----------------
+          - pkg_format: ipk
+            pkg_ext: ipk
+            platform: amd64
+            sdk_ver: "24.10.5"
+            sdk_url: "https://downloads.openwrt.org/releases/24.10.5/targets/x86/64/openwrt-sdk-24.10.5-x86-64_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
+          - pkg_format: ipk
+            pkg_ext: ipk
+            platform: aarch64_generic
+            sdk_ver: "24.10.5"
+            sdk_url: "https://downloads.openwrt.org/releases/24.10.5/targets/rockchip/armv8/openwrt-sdk-24.10.5-rockchip-armv8_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
+          - pkg_format: ipk
+            pkg_ext: ipk
+            platform: aarch64_cortex-a53
+            sdk_ver: "24.10.5"
+            sdk_url: "https://downloads.openwrt.org/releases/24.10.5/targets/mvebu/cortexa53/openwrt-sdk-24.10.5-mvebu-cortexa53_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
+          - pkg_format: ipk
+            pkg_ext: ipk
+            platform: aarch64_cortex-a72
+            sdk_ver: "24.10.5"
+            sdk_url: "https://downloads.openwrt.org/releases/24.10.5/targets/mvebu/cortexa72/openwrt-sdk-24.10.5-mvebu-cortexa72_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
+          - pkg_format: ipk
+            pkg_ext: ipk
+            platform: arm_cortex-a5_vfpv4
+            sdk_ver: "24.10.5"
+            sdk_url: "https://downloads.openwrt.org/releases/24.10.5/targets/at91/sama5/openwrt-sdk-24.10.5-at91-sama5_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst"
+          - pkg_format: ipk
+            pkg_ext: ipk
+            platform: arm_cortex-a7
+            sdk_ver: "24.10.5"
+            sdk_url: "https://downloads.openwrt.org/releases/24.10.5/targets/mediatek/mt7629/openwrt-sdk-24.10.5-mediatek-mt7629_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst"
+          - pkg_format: ipk
+            pkg_ext: ipk
+            platform: arm_cortex-a7_neon-vfpv4
+            sdk_ver: "24.10.5"
+            sdk_url: "https://downloads.openwrt.org/releases/24.10.5/targets/sunxi/cortexa7/openwrt-sdk-24.10.5-sunxi-cortexa7_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst"
+          - pkg_format: ipk
+            pkg_ext: ipk
+            platform: arm_cortex-a8_vfpv3
+            sdk_ver: "24.10.5"
+            sdk_url: "https://downloads.openwrt.org/releases/24.10.5/targets/sunxi/cortexa8/openwrt-sdk-24.10.5-sunxi-cortexa8_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst"
+          - pkg_format: ipk
+            pkg_ext: ipk
+            platform: arm_cortex-a9
+            sdk_ver: "24.10.5"
+            sdk_url: "https://downloads.openwrt.org/releases/24.10.5/targets/bcm53xx/generic/openwrt-sdk-24.10.5-bcm53xx-generic_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst"
+          - pkg_format: ipk
+            pkg_ext: ipk
+            platform: arm_cortex-a9_neon
+            sdk_ver: "24.10.5"
+            sdk_url: "https://downloads.openwrt.org/releases/24.10.5/targets/zynq/generic/openwrt-sdk-24.10.5-zynq-generic_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst"
+          - pkg_format: ipk
+            pkg_ext: ipk
+            platform: arm_cortex-a9_vfpv3-d16
+            sdk_ver: "24.10.5"
+            sdk_url: "https://downloads.openwrt.org/releases/24.10.5/targets/mvebu/cortexa9/openwrt-sdk-24.10.5-mvebu-cortexa9_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst"
+          - pkg_format: ipk
+            pkg_ext: ipk
+            platform: arm_cortex-a15_neon-vfpv4
+            sdk_ver: "24.10.5"
+            sdk_url: "https://downloads.openwrt.org/releases/24.10.5/targets/ipq806x/generic/openwrt-sdk-24.10.5-ipq806x-generic_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst"
+          - pkg_format: ipk
+            pkg_ext: ipk
+            platform: mips_mips32
+            sdk_ver: "24.10.5"
+            sdk_url: "https://downloads.openwrt.org/releases/24.10.5/targets/bcm53xx/generic/openwrt-sdk-24.10.5-bcm53xx-generic_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst"
+          - pkg_format: ipk
+            pkg_ext: ipk
+            platform: mipsel_24kc
+            sdk_ver: "24.10.5"
+            sdk_url: "https://downloads.openwrt.org/releases/24.10.5/targets/ramips/rt288x/openwrt-sdk-24.10.5-ramips-rt288x_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
+          - pkg_format: ipk
+            pkg_ext: ipk
+            platform: mipsel_74kc
+            sdk_ver: "24.10.5"
+            sdk_url: "https://downloads.openwrt.org/releases/24.10.5/targets/ramips/rt3883/openwrt-sdk-24.10.5-ramips-rt3883_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
+          - pkg_format: ipk
+            pkg_ext: ipk
+            platform: mipsel_mips32
+            sdk_ver: "24.10.5"
+            sdk_url: "https://downloads.openwrt.org/releases/24.10.5/targets/bcm47xx/generic/openwrt-sdk-24.10.5-bcm47xx-generic_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
+          - pkg_format: ipk
+            pkg_ext: ipk
+            platform: riscv64
+            sdk_ver: "24.10.5"
+            sdk_url: "https://downloads.openwrt.org/releases/24.10.5/targets/starfive/generic/openwrt-sdk-24.10.5-starfive-generic_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
+          - pkg_format: ipk
+            pkg_ext: ipk
+            platform: loongarch64
+            sdk_ver: "24.10.5"
+            sdk_url: "https://downloads.openwrt.org/releases/24.10.5/targets/loongarch64/generic/openwrt-sdk-24.10.5-loongarch64-generic_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
+
+          # ---------------- apk (snapshots) ----------------
+          - pkg_format: apk
+            pkg_ext: apk
+            platform: amd64
+            sdk_ver: "snapshot"
+            sdk_url: "https://downloads.openwrt.org/snapshots/targets/x86/64/openwrt-sdk-x86-64_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+          - pkg_format: apk
+            pkg_ext: apk
+            platform: aarch64_generic
+            sdk_ver: "snapshot"
+            sdk_url: "https://downloads.openwrt.org/snapshots/targets/rockchip/armv8/openwrt-sdk-rockchip-armv8_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+          - pkg_format: apk
+            pkg_ext: apk
+            platform: aarch64_cortex-a53
+            sdk_ver: "snapshot"
+            sdk_url: "https://downloads.openwrt.org/snapshots/targets/mvebu/cortexa53/openwrt-sdk-mvebu-cortexa53_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+          - pkg_format: apk
+            pkg_ext: apk
+            platform: aarch64_cortex-a72
+            sdk_ver: "snapshot"
+            sdk_url: "https://downloads.openwrt.org/snapshots/targets/mvebu/cortexa72/openwrt-sdk-mvebu-cortexa72_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+          - pkg_format: apk
+            pkg_ext: apk
+            platform: arm_cortex-a5_vfpv4
+            sdk_ver: "snapshot"
+            sdk_url: "https://downloads.openwrt.org/snapshots/targets/at91/sama5/openwrt-sdk-at91-sama5_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst"
+          - pkg_format: apk
+            pkg_ext: apk
+            platform: arm_cortex-a7
+            sdk_ver: "snapshot"
+            sdk_url: "https://downloads.openwrt.org/snapshots/targets/mediatek/mt7629/openwrt-sdk-mediatek-mt7629_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst"
+          - pkg_format: apk
+            pkg_ext: apk
+            platform: arm_cortex-a7_neon-vfpv4
+            sdk_ver: "snapshot"
+            sdk_url: "https://downloads.openwrt.org/snapshots/targets/sunxi/cortexa7/openwrt-sdk-sunxi-cortexa7_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst"
+          - pkg_format: apk
+            pkg_ext: apk
+            platform: arm_cortex-a8_vfpv3
+            sdk_ver: "snapshot"
+            sdk_url: "https://downloads.openwrt.org/snapshots/targets/sunxi/cortexa8/openwrt-sdk-sunxi-cortexa8_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst"
+          - pkg_format: apk
+            pkg_ext: apk
+            platform: arm_cortex-a9
+            sdk_ver: "snapshot"
+            sdk_url: "https://downloads.openwrt.org/snapshots/targets/bcm53xx/generic/openwrt-sdk-bcm53xx-generic_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst"
+          - pkg_format: apk
+            pkg_ext: apk
+            platform: arm_cortex-a9_neon
+            sdk_ver: "snapshot"
+            sdk_url: "https://downloads.openwrt.org/snapshots/targets/zynq/generic/openwrt-sdk-zynq-generic_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst"
+          - pkg_format: apk
+            pkg_ext: apk
+            platform: arm_cortex-a9_vfpv3-d16
+            sdk_ver: "snapshot"
+            sdk_url: "https://downloads.openwrt.org/snapshots/targets/mvebu/cortexa9/openwrt-sdk-mvebu-cortexa9_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst"
+          - pkg_format: apk
+            pkg_ext: apk
+            platform: arm_cortex-a15_neon-vfpv4
+            sdk_ver: "snapshot"
+            sdk_url: "https://downloads.openwrt.org/snapshots/targets/ipq806x/generic/openwrt-sdk-ipq806x-generic_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst"
+          - pkg_format: apk
+            pkg_ext: apk
+            platform: mips_mips32
+            sdk_ver: "snapshot"
+            sdk_url: "https://downloads.openwrt.org/snapshots/targets/bcm53xx/generic/openwrt-sdk-bcm53xx-generic_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst"
+          - pkg_format: apk
+            pkg_ext: apk
+            platform: mipsel_24kc
+            sdk_ver: "snapshot"
+            sdk_url: "https://downloads.openwrt.org/snapshots/targets/ramips/rt288x/openwrt-sdk-ramips-rt288x_gcc-14.2.0_musl.Linux-x86_64.tar.zst"
+          - pkg_format: apk
+            pkg_ext: apk
+            platform: mipsel_74kc
+            sdk_ver: "snapshot"
+            sdk_url: "https://downloads.openwrt.org/snapshots/targets/ramips/rt3883/openwrt-sdk-ramips-rt3883_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+          - pkg_format: apk
+            pkg_ext: apk
+            platform: mipsel_mips32
+            sdk_ver: "snapshot"
+            sdk_url: "https://downloads.openwrt.org/snapshots/targets/bcm47xx/generic/openwrt-sdk-bcm47xx-generic_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+          - pkg_format: apk
+            pkg_ext: apk
+            platform: riscv64
+            sdk_ver: "snapshot"
+            sdk_url: "https://downloads.openwrt.org/snapshots/targets/starfive/generic/openwrt-sdk-starfive-generic_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+          - pkg_format: apk
+            pkg_ext: apk
+            platform: loongarch64
+            sdk_ver: "snapshot"
+            sdk_url: "https://downloads.openwrt.org/snapshots/targets/loongarch64/generic/openwrt-sdk-loongarch64-generic_gcc-14.2.0_musl.Linux-x86_64.tar.zst"
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -206,9 +349,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: cache-sdk
-          key: openwrt-sdk-${{ matrix.sdk_ver }}-${{ matrix.platform }}
+          key: openwrt-sdk-${{ matrix.sdk_ver }}-${{ matrix.pkg_format }}-${{ matrix.platform }}
 
-      - name: Download SDK - ${{ matrix.platform }}
+      - name: Download SDK - ${{ matrix.platform }} (${{ matrix.pkg_format }})
         if: steps.cache-sdk.outputs.cache-hit != 'true'
         run: |
           mkdir -p cache-sdk
@@ -230,7 +373,13 @@ jobs:
       - name: Update feeds & install package
         run: |
           cd sdk
-          echo "src-git nps https://github.com/${{ github.repository }}.git" > feeds.conf
+
+          # prepend your feed, keep SDK defaults (works for both ipk release and apk snapshots)
+          cat > feeds.tmp <<EOF
+          src-git nps https://github.com/${{ github.repository }}.git
+          EOF
+          cat feeds.conf.default >> feeds.tmp
+          mv feeds.tmp feeds.conf.default
 
           ./scripts/feeds update -a
           echo "CONFIG_PACKAGE_npc=m" > .config
@@ -251,29 +400,29 @@ jobs:
           echo "CONFIG_PACKAGE_nps=m" >> .config
           make defconfig
 
-      - name: Build package for ${{ matrix.platform }}
+      - name: Build package for ${{ matrix.platform }} (${{ matrix.pkg_format }})
         run: |
           cd sdk
           make package/npc/{clean,compile} -j$(nproc) V=s
           make package/nps/{clean,compile} -j$(nproc) V=s
 
-      - name: Collect bin ipk for ${{ matrix.platform }}
+      - name: Collect bin packages for ${{ matrix.platform }} (${{ matrix.pkg_format }})
         run: |
           cd sdk
-          mkdir -p ../release/bin/${{ matrix.platform }}
-          cp bin/packages/*/nps/*.ipk ../release/bin/${{ matrix.platform }}/
+          mkdir -p ../release/bin/${{ matrix.platform }}/${{ matrix.pkg_format }}
+          cp bin/packages/*/nps/*.${{ matrix.pkg_ext }} ../release/bin/${{ matrix.platform }}/${{ matrix.pkg_format }}/
 
-      - name: Upload bin artifacts for ${{ matrix.platform }}
+      - name: Upload bin artifacts for ${{ matrix.platform }} (${{ matrix.pkg_format }})
         uses: actions/upload-artifact@v4
         with:
-          name: bin-${{ matrix.platform }}-${{ env.NPS_VERSION }}
-          path: release/bin/${{ matrix.platform }}/*.ipk
+          name: bin-${{ matrix.pkg_format }}-${{ matrix.platform }}-${{ env.NPS_VERSION }}
+          path: release/bin/${{ matrix.platform }}/${{ matrix.pkg_format }}/*.${{ matrix.pkg_ext }}
 
-      - name: Upload release assets for ${{ matrix.platform }}
+      - name: Upload release assets for ${{ matrix.platform }} (${{ matrix.pkg_format }})
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.NPS_VERSION }}
-          files: release/bin/${{ matrix.platform }}/*.ipk
+          files: release/bin/${{ matrix.platform }}/${{ matrix.pkg_format }}/*.${{ matrix.pkg_ext }}
           prerelease: false
           update_existing_release: true
         env:
