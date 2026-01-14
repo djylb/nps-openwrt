@@ -135,7 +135,7 @@ jobs:
           files=(bin/packages/*/nps/luci*.${{ matrix.pkg_ext }})
           if [ ${#files[@]} -eq 0 ]; then
             echo "No luci packages found (*.${{ matrix.pkg_ext }})" >&2
-            find bin/packages -maxdepth 5 -type f -name "*.${{ matrix.pkg_ext }}" -print || true
+            find bin/packages -maxdepth 6 -type f -name "*.${{ matrix.pkg_ext }}" -print || true
             exit 1
           fi
           cp "${files[@]}" ../release/luci/${{ matrix.pkg_ext }}/
@@ -415,15 +415,25 @@ jobs:
       - name: Collect bin packages for ${{ matrix.platform }}
         run: |
           cd sdk
-          mkdir -p ../release/bin/${{ matrix.pkg_ext }}/${{ matrix.platform }}
+          out="../release/bin/${{ matrix.pkg_ext }}/${{ matrix.platform }}"
+          mkdir -p "$out"
           shopt -s nullglob
           files=(bin/packages/*/nps/*.${{ matrix.pkg_ext }})
           if [ ${#files[@]} -eq 0 ]; then
             echo "No bin packages found (*.${{ matrix.pkg_ext }})" >&2
-            find bin/packages -maxdepth 5 -type f -name "*.${{ matrix.pkg_ext }}" -print || true
+            find bin/packages -maxdepth 6 -type f -name "*.${{ matrix.pkg_ext }}" -print || true
             exit 1
           fi
-          cp "${files[@]}" ../release/bin/${{ matrix.pkg_ext }}/${{ matrix.platform }}/
+
+          for f in "${files[@]}"; do
+            b="$(basename "$f")"
+            if [ "${{ matrix.pkg_ext }}" = "apk" ]; then
+              new="${b%.*}_${{ matrix.platform }}.${b##*.}"
+            else
+              new="$b"
+            fi
+            cp "$f" "$out/$new"
+          done
 
       - name: Upload bin artifacts for ${{ matrix.platform }}
         uses: actions/upload-artifact@v4
