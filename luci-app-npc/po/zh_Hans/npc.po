@@ -10,8 +10,8 @@ msgstr "(host:port) 例如: xxx.com:8024,yyy.com:8025..."
 msgid "(vkey) e.g. vkey1,vkey2..."
 msgstr "(vkey) 例如: vkey1,vkey2..."
 
-msgid "(tcp|tls|kcp) e.g. tcp,tls..."
-msgstr "(tcp|tls|kcp) 例如: tcp,tls..."
+msgid "(tls|quic|wss|tcp) e.g. tls,quic..."
+msgstr "(tls|quic|wss|tcp) 例如: tls,quic..."
 
 msgid "e.g. 8.8.8.8"
 msgstr "例如: 8.8.8.8"

@@ -2,7 +2,7 @@
 config npc
 	option enable '0'
 	option server_addr '1.2.3.4:123'
-	option protocol 'tcp'
+	option protocol 'tls'
 	option vkey 'abcdefg'
 	option dns ''
 	option extra_args '-debug=false -log=off'

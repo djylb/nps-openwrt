@@ -26,8 +26,8 @@ vkey = s:option(Value, "vkey", translate("vkey"), translate("(vkey) e.g. vkey1,v
 vkey.password = true
 vkey.rmempty = false
 
-protocol = s:option(Value, "protocol", translate("Protocol Type"), translate("(tcp|tls|kcp) e.g. tcp,tls..."))
-protocol.default = "tcp"
+protocol = s:option(Value, "protocol", translate("Protocol Type"), translate("(tls|quic|wss|tcp) e.g. tls,quic..."))
+protocol.default = "tls"
 
 dns = s:option(Value, "dns", translate("DNS Server"), translate("e.g. 8.8.8.8"))
 dns.default = ""
