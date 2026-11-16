@@ -3,7 +3,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=nps
-PKG_VERSION:=0.35.2
+PKG_VERSION:=null
 PKG_RELEASE:=1
 PKG_LICENSE:=Apache-2.0
 PKG_MAINTAINER:=Duan <duan@d-jy.net>
@@ -57,18 +57,18 @@ PKG_SOURCE_URL:=$(NPS_URL)/releases/download/v$(PKG_VERSION)/
 
 # === NPS_HASH_TABLE_START ===
 NPS_HASHES:= \
-  amd64=1e5286d5a27026a129d33b17aa68efbddc14ee967c351efb87edb7f06711b73e \
-  386=2e6b54a8c22a94e211a1c75b6d85b3020800168499d1f78a2f01701d5580fd0e \
-  arm64=c26b9f05c0f69d649e8d2951efa3b659599a8eaef55cd398601df1e65ce7944d \
-  arm_v7=60957c848ddfdb57d6ee78ec4199eb37d125ce97da3ab80040385a356c325ac3 \
-  arm_v6=6cd5d500d8026b3f4390e1de1f336a633be780365765aa4950594c12da91e84d \
-  arm_v5=292c318629c0f7a72ec5bbb54da50b6aa2af790b4bde27a04273369eed21c57f \
-  mips_softfloat=cc971530f149f783767812fd76dd001bfc3e8335501a34f49614c1f457919b67 \
-  mipsle_softfloat=f03d906f818ffda965f6c6f2bb34b8f000a45159f63f29876c0dffff5f8bc2c4 \
-  mips64=7721a97c39686120fe8f31281eb9e8b651ed0659d1b46860202963d204d4d420 \
-  mips64le=ea75885ef874b5ebf77c477283929402505d8d729adc541ccd6b7f469c664f7f \
-  loong64=f8afdf5a25ab59e0dbfbd8c570f406d4b2c89a86fdcf87600c77b48f4ecf3b13 \
-  riscv64=cca314222229ecd3765aa882defc6dde53ee1a2cde473299ff0b696bbe969c13
+  amd64=0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5 \
+  386=0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5 \
+  arm64=0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5 \
+  arm_v7=0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5 \
+  arm_v6=0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5 \
+  arm_v5=0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5 \
+  mips_softfloat=0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5 \
+  mipsle_softfloat=0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5 \
+  mips64=0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5 \
+  mips64le=0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5 \
+  loong64=0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5 \
+  riscv64=0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5
 # === NPS_HASH_TABLE_END ===
 
 PKG_HASH:=$(strip $(foreach pair,$(NPS_HASHES), $(if $(findstring $(NPS_ARCH),$(pair)),$(word 2, $(subst =, ,$(pair))))))
