@@ -7,6 +7,8 @@ function index()
 
 	entry({"admin", "services", "npc"}, cbi("npc"), _("NPS Client"), 99).dependent = true
 	entry({"admin", "services", "npc", "status"}, call("act_status")).leaf = true
+	entry({"admin", "services", "npc", "connection"}, cbi("npc/connection")).leaf = true
+	entry({"admin", "services", "npc", "access"}, cbi("npc/access")).leaf = true
 end
 
 local function mask(arg)

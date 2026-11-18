@@ -1,33 +1,42 @@
 <script type="text/javascript">//<![CDATA[
 XHR.poll(3, '<%=url([[admin]], [[services]], [[npc]], [[status]])%>', null,
 	function(x, data) {
-		var tb = document.getElementById('npc_status');
+		var st = document.getElementById('npc_state');
+		var detail = document.getElementById('npc_detail');
 		var cmd = document.getElementById('npc_cmd');
-		if (!data || !tb) return;
+		if (!data || !st) return;
+		var ver = data.version ? 'NPC ' + data.version : 'NPC';
 		if (!data.installed) {
-			tb.innerHTML = '<b style="color:red">NPC <%:NOT INSTALLED%></b>';
+			st.className = 'label warning';
+			st.textContent = '<%:Not installed%>';
+			detail.textContent = '<%:Install it on the Install and Update tab.%>';
 		} else if (data.running) {
-			tb.innerHTML = '<b style="color:green">NPC ' + data.version + ' <%:RUNNING%></b>';
+			st.className = 'label success';
+			st.textContent = '<%:Running%>';
+			detail.textContent = ver;
 		} else {
-			var ec = (data.exit_code != null) ? ' (<%:exit code%> ' + data.exit_code + ', <%:set Log Level to see the reason in System Log%>)' : '';
-			tb.innerHTML = '<b style="color:red">NPC ' + data.version + ' <%:NOT RUNNING%></b>' + ec;
+			st.className = 'label warning';
+			st.textContent = '<%:Not running%>';
+			detail.textContent = ver + (data.exit_code != null
+				? ' · <%:exit code%> ' + data.exit_code + ' · <%:choose a Log Level on the Advanced Settings tab to see the reason in the System Log%>'
+				: '');
 		}
-		if (cmd) {
-			cmd.style.display = data.command ? '' : 'none';
-			cmd.querySelector('pre').textContent = data.command || '';
-		}
+		cmd.style.display = data.command ? '' : 'none';
+		cmd.querySelector('pre').textContent = data.command || '';
 	}
 );
 //]]>
 </script>
 <style>
-.npc-cmd pre { white-space: pre-wrap; word-break: break-all; font-size: 12px; margin: 0; padding: 8px; background: rgba(127,127,127,.1); border-radius: 4px; }
+#npc_status_box .label { margin-right: .6em; }
+#npc_cmd { margin-top: .6em; }
+#npc_cmd pre { white-space: pre-wrap; word-break: break-all; font-size: 12px; margin: .4em 0 0; padding: .6em; border: 1px solid; border-color: inherit; border-radius: 4px; opacity: .85; }
 .cbi-section textarea { width: 100% !important; box-sizing: border-box; font-family: monospace; font-size: 12px; word-break: break-all; }
 </style>
-<fieldset class="cbi-section">
-	<p id="npc_status"><em><%:Collecting data...%></em></p>
-	<details class="npc-cmd" id="npc_cmd" style="display:none">
+<div class="cbi-section" id="npc_status_box">
+	<p><span id="npc_state" class="label"><%:Collecting data...%></span><span id="npc_detail"></span></p>
+	<details id="npc_cmd" style="display:none">
 		<summary><%:Running command (keys hidden)%></summary>
 		<pre></pre>
 	</details>
-</fieldset>
+</div>

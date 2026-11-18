@@ -1,10 +1,5 @@
 
 config npc
 	option enable '0'
-	option dns ''
 	option log_level ''
 	option extra_args ''
-
-config connection 'home'
-	option enabled '1'
-	option link 'npc://YOUR_VKEY@1.2.3.4:8024?type=tls'

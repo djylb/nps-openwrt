@@ -73,11 +73,8 @@ start_service() {
 	config_foreach find_section npc
 	[ -z "$npc_section" ] && return
 
-	local enable server_addr protocol vkey dns extra_args log_level config_file launches
+	local enable dns extra_args log_level config_file launches
 	config_get_bool enable "$npc_section" enable 0
-	config_get server_addr "$npc_section" server_addr
-	config_get protocol "$npc_section" protocol
-	config_get vkey "$npc_section" vkey
 	config_get dns "$npc_section" dns
 	config_get log_level "$npc_section" log_level
 	config_get config_file "$npc_section" config_file
@@ -102,8 +99,8 @@ start_service() {
 		has_launch=1
 	fi
 
-	if [ "$has_launch" = "0" ] && [ -z "$server_addr" ] && ! has_arg server "$@" && ! has_arg s "$@"; then
-		${LOGGER} "NPS Client(NPC) has no enabled connection, config file or server; not started"
+	if [ "$has_launch" = "0" ] && ! has_arg server "$@" && ! has_arg s "$@"; then
+		${LOGGER} "NPS Client(NPC) has no enabled connection or config file; not started"
 		return
 	fi
 
@@ -116,12 +113,6 @@ start_service() {
 	config_foreach append_access access
 	[ -n "$config_file" ] && procd_append_param command "-config=$config_file"
 
-	# Deprecated single-connection form: npc 0.35 refuses -server/-vkey together with -launch.
-	if [ "$has_launch" = "0" ] && [ -n "$server_addr" ] && ! has_arg server "$@" && ! has_arg s "$@"; then
-		procd_append_param command "-server=$server_addr"
-		has_arg vkey "$@" || has_arg k "$@" || procd_append_param command "-vkey=$vkey"
-		[ -n "$protocol" ] && ! has_arg type "$@" && ! has_arg t "$@" && procd_append_param command "-type=$protocol"
-	fi
 
 	[ -n "$dns" ] && ! has_arg dns_server "$@" && procd_append_param command "-dns_server=$dns"
 	has_arg debug "$@" || procd_append_param command "-debug=false"
