@@ -1,35 +1,71 @@
+msgid ""
+msgstr "Content-Type: text/plain; charset=UTF-8\n"
+
 msgid "NPS Server"
 msgstr "NPS 内网穿透服务端"
 
-msgid "NPS is a fast reverse proxy to help you expose a local server behind a NAT or firewall to the internet."
-msgstr "NPS 是一种快速反向代理,可帮助您将 NAT 或防火墙后的本地服务器公开到 Internet"
+msgid "Basic Settings"
+msgstr "基本设置"
 
-msgid "NPS Configuration"
-msgstr "NPS 配置"
+msgid "Config File"
+msgstr "配置文件"
 
-msgid "NOT INSTALLED"
-msgstr "未安装"
+msgid "Install and Update"
+msgstr "安装与更新"
 
-msgid "RUNNING"
-msgstr "运行中"
+msgid "Enable"
+msgstr "启用"
 
-msgid "NOT RUNNING"
-msgstr "未运行"
+msgid "Data"
+msgstr "数据管理"
+
+msgid "Clients, tunnels and domains are managed in the NPS web panel; open it with the button above when NPS runs."
+msgstr "客户端、隧道和域名都在 NPS 管理面板里管理；NPS 运行时可用上方按钮打开。"
+
+msgid "The file NPS reads. Saving writes it and restarts NPS; the previous version is kept as a .bak file."
+msgstr "NPS 实际读取的配置文件。保存后写入并重启 NPS，原文件保留为 .bak。"
 
 msgid "Update NPS"
 msgstr "更新 NPS"
 
-msgid "Click to update to the latest version"
-msgstr "点击即可更新到最新版本"
+msgid "Update NPS to the latest release and restart it"
+msgstr "更新 NPS 到最新版本并重启"
 
 msgid "Install NPS"
 msgstr "安装 NPS"
 
-msgid "Click to install or update NPS via script"
-msgstr "点击通过脚本安装或更新 NPS"
+msgid "Install or reinstall NPS with the install script"
+msgstr "用安装脚本安装或重装 NPS"
 
 msgid "Default Config"
-msgstr "默认配置"
+msgstr "恢复默认配置"
 
-msgid "Clicking this button will replace the current configuration with the default configuration file."
-msgstr "点击此按钮将替换当前配置为默认配置文件"
+msgid "Replace the config file with the default one shipped with NPS; the current one is kept as a .bak file."
+msgstr "用 NPS 自带的默认配置覆盖当前配置文件，当前文件保留为 .bak。"
+
+msgid "Project"
+msgstr "项目主页"
+
+msgid "Not installed"
+msgstr "未安装"
+
+msgid "Install it on the Install and Update tab."
+msgstr "请在“安装与更新”标签页安装。"
+
+msgid "Running"
+msgstr "运行中"
+
+msgid "Not running"
+msgstr "未运行"
+
+msgid "exit code"
+msgstr "退出码"
+
+msgid "see the System Log for the reason"
+msgstr "原因见系统日志"
+
+msgid "Collecting data..."
+msgstr "正在收集数据..."
+
+msgid "Open web panel"
+msgstr "打开管理面板"

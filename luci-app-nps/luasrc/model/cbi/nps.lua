@@ -1,12 +1,21 @@
-m = Map("nps", translate("NPS Server"), translate("NPS is a fast reverse proxy to help you expose a local server behind a NAT or firewall to the internet."))
+local nps = require "luci.tools.nps"
+
+local conf_file = nps.file()
+local default_file = nps.conf_dir .. "/nps.conf.default"
+
+m = Map("nps", translate("NPS Server"))
 m.apply_on_parse = true
+-- conf_changed is set when the page wrote the config file, which is not in
+-- UCI and so starts no commit.
+local conf_changed = false
+function m.on_after_save(self)
+	if conf_changed and luci.model.uci.cursor():get("nps", "@nps[0]", "enable") == "1" then
+		luci.sys.call("/etc/init.d/nps restart >/dev/null 2>&1")
+	end
+end
 function m.on_after_commit(self)
 	local enabled = luci.model.uci.cursor():get("nps", "@nps[0]", "enable")
-	if enabled == "1" then
-		luci.sys.call("/etc/init.d/nps restart >/dev/null 2>&1")
-	else
-		luci.sys.call("/etc/init.d/nps stop >/dev/null 2>&1")
-	end
+	luci.sys.call("/etc/init.d/nps " .. (enabled == "1" and "restart" or "stop") .. " >/dev/null 2>&1")
 end
 
 m:section(SimpleSection).template = "nps/nps_status"
@@ -15,84 +24,69 @@ s = m:section(TypedSection, "nps")
 s.addremove = false
 s.anonymous = true
 
-enable = s:option(Flag, "enable", translate("Enable"))
+s:tab("basic", translate("Basic Settings"))
+s:tab("config", translate("Config File"))
+s:tab("maintain", translate("Install and Update"))
+
+enable = s:taboption("basic", Flag, "enable", translate("Enable"))
 enable.rmempty = false
 enable.default = "0"
 
-local conf_file_path = "/etc/nps/conf/nps.conf"
-text_value = s:option(TextValue, "nps_conf", translate("NPS Configuration"))
-text_value.rows = 40
-text_value.size = 80
-text_value.wrap = "soft"
+note = s:taboption("basic", DummyValue, "_note", translate("Data"))
+note.default = translate("Clients, tunnels and domains are managed in the NPS web panel; open it with the button above when NPS runs.")
 
-function text_value.cfgvalue(self, section)
-	local conf_file = io.open(conf_file_path, "r")
-	if conf_file then
-		local content = conf_file:read("*a")
-		conf_file:close()
-		return content
-	else
-		local default_conf_path = "/etc/nps/conf/nps.conf.default"
-		local default_conf_file = io.open(default_conf_path, "r")
-		if default_conf_file then
-			local default_content = default_conf_file:read("*a")
-			default_conf_file:close()
-			return default_content
-		else
-			return ""
-		end
+conf = s:taboption("config", TextValue, "_conf", conf_file,
+	translate("The file NPS reads. Saving writes it and restarts NPS; the previous version is kept as a .bak file."))
+conf.rows = 30
+conf.wrap = "off"
+function conf.cfgvalue()
+	return nps.read(conf_file) or nps.read(default_file) or ""
+end
+function conf.remove() end
+function conf.write(self, section, value)
+	value = (value or ""):gsub("\r\n", "\n")
+	if value == (nps.read(conf_file) or "") then
+		return
 	end
+	luci.sys.call(string.format("[ -f '%s' ] && cp -p '%s' '%s.bak'", conf_file, conf_file, conf_file))
+	local f = io.open(conf_file, "w")
+	if f then
+		f:write(value)
+		f:close()
+	end
+	conf_changed = true
 end
 
-function text_value.write(self, section, value)
-	local conf_file = io.open(conf_file_path, "w")
-	if conf_file then
-		conf_file:write(value)
-		conf_file:close()
-
-		local is_running = luci.sys.call("pgrep -x nps > /dev/null") == 0
-		if is_running then
-			luci.sys.call("/etc/init.d/nps restart")
-		end
-	end
-end
-
-update_button = s:option(Button, "update_button", translate("Update NPS"), translate("Click to update to the latest version"))
-update_button.modal = false
-function update_button.write(self, section, value)
-	luci.http.redirect(luci.dispatcher.build_url("admin", "services", "nps"))
+update_button = s:taboption("maintain", Button, "_update", translate("Update NPS"), translate("Update NPS to the latest release and restart it"))
+update_button.inputstyle = "apply"
+function update_button.write()
 	luci.sys.call("( /usr/bin/nps update && /etc/init.d/nps restart ) >/tmp/nps_update.log 2>&1 &")
 end
 
-install_button = s:option(Button, "install_button", translate("Install NPS"), translate("Click to install or update NPS via script"))
-install_button.modal = false
-function install_button.write(self, section, value)
-	luci.http.redirect(luci.dispatcher.build_url("admin", "services", "nps"))
+install_button = s:taboption("maintain", Button, "_install", translate("Install NPS"), translate("Install or reinstall NPS with the install script"))
+function install_button.write()
 	luci.sys.call("( wget -qO- https://fastly.jsdelivr.net/gh/djylb/nps@master/install.sh | sh -s nps && /etc/init.d/nps restart ) >/tmp/nps_install.log 2>&1 &")
 end
 
-default_button = s:option(Button, "default_button", translate("Default Config"), translate("Clicking this button will replace the current configuration with the default configuration file."))
-default_button.modal = false
-function default_button.write(self, section, value)
-	luci.sys.call(string.format("[ -f %s ] && cp %s %s.bak.$(date +%%Y%%m%%d%%H%%M%%S)", conf_file_path, conf_file_path, conf_file_path))
-	local default_conf_file = io.open("/etc/nps/conf/nps.conf.default", "r")
-	if default_conf_file then
-		local default_content = default_conf_file:read("*a")
-		default_conf_file:close()
-		local conf_file = io.open(conf_file_path, "w")
-		if conf_file then
-			conf_file:write(default_content)
-			conf_file:close()
-		end
+default_button = s:taboption("maintain", Button, "_default", translate("Default Config"),
+	translate("Replace the config file with the default one shipped with NPS; the current one is kept as a .bak file."))
+default_button.inputstyle = "reset"
+function default_button.write(self, section)
+	local def = nps.read(default_file)
+	if not def then
+		return
 	end
-	luci.http.redirect(luci.dispatcher.build_url("admin", "services", "nps"))
+	luci.sys.call(string.format("[ -f '%s' ] && cp -p '%s' '%s.bak'", conf_file, conf_file, conf_file))
+	local f = io.open(conf_file, "w")
+	if f then
+		f:write(def)
+		f:close()
+	end
+	conf_changed = true
 end
 
-github_button = s:option(Button, "github_button", "Github", "https://github.com/djylb/nps-openwrt")
-github_button.modal = false
-function github_button.write(self, section, value)
-	luci.http.status(200)
-	luci.http.redirect("https://github.com/djylb/nps-openwrt")
-end
+home = s:taboption("maintain", DummyValue, "_home", translate("Project"))
+home.rawhtml = true
+home.default = '<a href="https://github.com/djylb/nps-openwrt" target="_blank" rel="noopener">github.com/djylb/nps-openwrt</a>'
 
 return m

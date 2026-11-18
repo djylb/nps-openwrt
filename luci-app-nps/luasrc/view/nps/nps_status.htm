@@ -1,23 +1,43 @@
 <script type="text/javascript">//<![CDATA[
 XHR.poll(3, '<%=url([[admin]], [[services]], [[nps]], [[status]])%>', null,
 	function(x, data) {
-		var tb = document.getElementById('nps_status');
-		if (data && tb) {
-			if (!data.installed) {
-				tb.innerHTML = '<em><b><font color="red">NPS <%:NOT INSTALLED%></font></b></em>';
-			} else if (data.running) {
-				tb.innerHTML = '<em><b><font color=green>NPS(' + data.version + ') <%:RUNNING%></font></b></em>';
-			} else {
-				tb.innerHTML = '<em><b><font color=red>NPS(' + data.version + ') <%:NOT RUNNING%></font></b></em>';
-			}
+		var st = document.getElementById('nps_state');
+		var detail = document.getElementById('nps_detail');
+		var panel = document.getElementById('nps_panel');
+		if (!data || !st) return;
+		var ver = data.version ? 'NPS ' + data.version : 'NPS';
+		if (!data.installed) {
+			st.className = 'label warning';
+			st.textContent = '<%:Not installed%>';
+			detail.textContent = '<%:Install it on the Install and Update tab.%>';
+		} else if (data.running) {
+			st.className = 'label success';
+			st.textContent = '<%:Running%>';
+			detail.textContent = ver;
+		} else {
+			st.className = 'label warning';
+			st.textContent = '<%:Not running%>';
+			detail.textContent = ver + (data.exit_code != null
+				? ' · <%:exit code%> ' + data.exit_code + ' · <%:see the System Log for the reason%>'
+				: '');
+		}
+		if (data.running && data.panel) {
+			var url = data.panel.scheme + '://' + location.hostname + ':' + data.panel.port + (data.panel.base || '') + '/';
+			panel.href = url;
+			panel.style.display = '';
+		} else {
+			panel.style.display = 'none';
 		}
 	}
 );
 //]]>
 </script>
-<style>.mar-10 {margin-left: 50px; margin-right: 10px;}</style>
-<fieldset class="cbi-section">
-	<p id="nps_status">
-		<em><%:Collecting data...%></em>
-	</p>
-</fieldset>
+<style>
+#nps_status_box .label { margin-right: .6em; }
+#nps_panel { margin-left: 1em; }
+.cbi-section textarea { width: 100% !important; box-sizing: border-box; font-family: monospace; font-size: 12px; }
+</style>
+<div class="cbi-section" id="nps_status_box">
+	<p><span id="nps_state" class="label"><%:Collecting data...%></span><span id="nps_detail"></span>
+	<a id="nps_panel" class="btn cbi-button" target="_blank" rel="noopener" style="display:none"><%:Open web panel%></a></p>
+</div>

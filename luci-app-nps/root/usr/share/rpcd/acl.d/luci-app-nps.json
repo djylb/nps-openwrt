@@ -1,11 +1,15 @@
 {
-	"luci-app-npc": {
+	"luci-app-nps": {
 		"description": "Grant UCI access for luci-app-nps",
 		"read": {
-			"uci": [ "nps" ]
+			"uci": [
+				"nps"
+			]
 		},
 		"write": {
-			"uci": [ "nps" ]
+			"uci": [
+				"nps"
+			]
 		}
 	}
 }
