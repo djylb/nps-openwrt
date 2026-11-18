@@ -2,22 +2,32 @@
 XHR.poll(3, '<%=url([[admin]], [[services]], [[npc]], [[status]])%>', null,
 	function(x, data) {
 		var tb = document.getElementById('npc_status');
-		if (data && tb) {
-			if (!data.installed) {
-				tb.innerHTML = '<em><b><font color="red">NPC <%:NOT INSTALLED%></font></b></em>';
-			} else if (data.running) {
-				tb.innerHTML = '<em><b><font color=green>NPC(' + data.version + ') <%:RUNNING%></font></b></em>';
-			} else {
-				tb.innerHTML = '<em><b><font color=red>NPC(' + data.version + ') <%:NOT RUNNING%></font></b></em>';
-			}
+		var cmd = document.getElementById('npc_cmd');
+		if (!data || !tb) return;
+		if (!data.installed) {
+			tb.innerHTML = '<b style="color:red">NPC <%:NOT INSTALLED%></b>';
+		} else if (data.running) {
+			tb.innerHTML = '<b style="color:green">NPC ' + data.version + ' <%:RUNNING%></b>';
+		} else {
+			var ec = (data.exit_code != null) ? ' (<%:exit code%> ' + data.exit_code + ', <%:set Log Level to see the reason in System Log%>)' : '';
+			tb.innerHTML = '<b style="color:red">NPC ' + data.version + ' <%:NOT RUNNING%></b>' + ec;
+		}
+		if (cmd) {
+			cmd.style.display = data.command ? '' : 'none';
+			cmd.querySelector('pre').textContent = data.command || '';
 		}
 	}
 );
 //]]>
 </script>
-<style>.mar-10 {margin-left: 50px; margin-right: 10px;}</style>
+<style>
+.npc-cmd pre { white-space: pre-wrap; word-break: break-all; font-size: 12px; margin: 0; padding: 8px; background: rgba(127,127,127,.1); border-radius: 4px; }
+.cbi-section textarea { width: 100% !important; box-sizing: border-box; font-family: monospace; font-size: 12px; word-break: break-all; }
+</style>
 <fieldset class="cbi-section">
-	<p id="npc_status">
-		<em><%:Collecting data...%></em>
-	</p>
+	<p id="npc_status"><em><%:Collecting data...%></em></p>
+	<details class="npc-cmd" id="npc_cmd" style="display:none">
+		<summary><%:Running command (keys hidden)%></summary>
+		<pre></pre>
+	</details>
 </fieldset>

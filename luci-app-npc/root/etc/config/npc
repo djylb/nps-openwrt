@@ -1,9 +1,10 @@
 
 config npc
 	option enable '0'
-	option server_addr '1.2.3.4:123'
-	option protocol 'tls'
-	option vkey 'abcdefg'
 	option dns ''
-	option extra_args '-debug=false -log=off'
+	option log_level ''
+	option extra_args ''
 
+config connection 'home'
+	option enabled '1'
+	option link 'npc://YOUR_VKEY@1.2.3.4:8024?type=tls'

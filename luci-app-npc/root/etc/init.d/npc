@@ -6,6 +6,58 @@ LOGGER="logger -t [NPC]"
 
 npc_Path="$(command -v npc)"
 
+has_arg() {
+	# has_arg NAME ARGS...: true if -NAME / --NAME (with "_", "-" or "." spelled any way) is present
+	local name="$1" a n
+	shift
+	for a in "$@"; do
+		case "$a" in
+			-*) ;;
+			*) continue ;;
+		esac
+		n="${a#-}"
+		n="${n#-}"
+		n="${n%%=*}"
+		n="$(echo "$n" | tr '.-' '__')"
+		[ "$n" = "$name" ] && return 0
+	done
+	return 1
+}
+
+find_section() {
+	[ -z "$npc_section" ] && npc_section="$1"
+}
+
+count_connection() {
+	local enabled link
+	config_get_bool enabled "$1" enabled 1
+	config_get link "$1" link
+	[ "$enabled" = "1" ] && [ -n "$link" ] && conn_count=$((conn_count + 1))
+}
+
+append_connection() {
+	local enabled link
+	config_get_bool enabled "$1" enabled 1
+	config_get link "$1" link
+	[ "$enabled" = "1" ] && [ -n "$link" ] || return 0
+	case "$link" in
+		npc://*\#*) ;;
+		npc://*) link="$link#$1" ;;
+	esac
+	procd_append_param command "-launch=$link"
+}
+
+append_access() {
+	local enabled link
+	config_get_bool enabled "$1" enabled 1
+	config_get link "$1" link
+	[ "$enabled" = "1" ] && [ -n "$link" ] && procd_append_param command "-L=$link"
+}
+
+append_launch() {
+	[ -n "$1" ] && procd_append_param command "-launch=$1"
+}
+
 start_service() {
 	if [ -f /usr/local/bin/npc ] ; then
 		${LOGGER} "Moving npc to /usr/bin ..."
@@ -15,40 +67,73 @@ start_service() {
 		${LOGGER} "Moving npc-update to /usr/bin ..."
 		mv -f /usr/local/bin/npc-update /usr/bin/npc-update
 	fi
-	local basic_list="enable server_addr protocol vkey dns extra_args"
-	for i in $(echo $basic_list);do
-		local eval $i="$(uci_get_by_type npc 0 $i)"
-	done;unset i
+
+	local npc_section="" conn_count=0
+	config_load npc
+	config_foreach find_section npc
+	[ -z "$npc_section" ] && return
+
+	local enable server_addr protocol vkey dns extra_args log_level config_file launches
+	config_get_bool enable "$npc_section" enable 0
+	config_get server_addr "$npc_section" server_addr
+	config_get protocol "$npc_section" protocol
+	config_get vkey "$npc_section" vkey
+	config_get dns "$npc_section" dns
+	config_get log_level "$npc_section" log_level
+	config_get config_file "$npc_section" config_file
+	config_get extra_args "$npc_section" extra_args
+	config_get launches "$npc_section" launch
 
 	if [ "$enable" != "1" ]; then
 		${LOGGER} "NPS Client(NPC) is disabled"
 		return
 	fi
 
+	# Extra arguments are parsed like a shell command line, so quotes are stripped properly.
+	eval "set -- $extra_args" || {
+		${LOGGER} "Invalid extra arguments: $extra_args"
+		return 1
+	}
+
+	config_foreach count_connection connection
+	local has_launch=0
+	if [ "$conn_count" -gt 0 ] || [ -n "$launches" ] || [ -n "$config_file" ] || \
+		has_arg launch "$@" || has_arg config "$@" || has_arg c "$@"; then
+		has_launch=1
+	fi
+
+	if [ "$has_launch" = "0" ] && [ -z "$server_addr" ] && ! has_arg server "$@" && ! has_arg s "$@"; then
+		${LOGGER} "NPS Client(NPC) has no enabled connection, config file or server; not started"
+		return
+	fi
+
 	${LOGGER} "Starting NPS Client(NPC) ..."
 
-	cmd_args=""
-	if ! printf '%s\n' "$extra_args" | grep -q -- '\-server='; then
-		cmd_args="$cmd_args -server=${server_addr}"
-	fi
-	if ! printf '%s\n' "$extra_args" | grep -q -- '\-vkey='; then
-		cmd_args="$cmd_args -vkey=${vkey}"
-	fi
-	if ! printf '%s\n' "$extra_args" | grep -q -- '\-type='; then
-		cmd_args="$cmd_args -type=${protocol}"
-	fi
-	if ! printf '%s\n' "$extra_args" | grep -q -- '\-dns_server='; then
-		cmd_args="$cmd_args -dns_server=${dns}"
-	fi
-
-	[ -n "$extra_args" ] && cmd_args="$cmd_args $extra_args"
-
-	if ! printf '%s\n' "$cmd_args" | grep -q -- '\-log='; then
-		cmd_args="$cmd_args -log=off"
-	fi
-
 	procd_open_instance
-	procd_set_param command $npc_Path $cmd_args
+	procd_set_param command "$npc_Path"
+	config_foreach append_connection connection
+	config_list_foreach "$npc_section" launch append_launch
+	config_foreach append_access access
+	[ -n "$config_file" ] && procd_append_param command "-config=$config_file"
+
+	# Deprecated single-connection form: npc 0.35 refuses -server/-vkey together with -launch.
+	if [ "$has_launch" = "0" ] && [ -n "$server_addr" ] && ! has_arg server "$@" && ! has_arg s "$@"; then
+		procd_append_param command "-server=$server_addr"
+		has_arg vkey "$@" || has_arg k "$@" || procd_append_param command "-vkey=$vkey"
+		[ -n "$protocol" ] && ! has_arg type "$@" && ! has_arg t "$@" && procd_append_param command "-type=$protocol"
+	fi
+
+	[ -n "$dns" ] && ! has_arg dns_server "$@" && procd_append_param command "-dns_server=$dns"
+	has_arg debug "$@" || procd_append_param command "-debug=false"
+	if [ -n "$log_level" ]; then
+		has_arg log "$@" || procd_append_param command "-log=stdout"
+		has_arg log_format "$@" || procd_append_param command "-log_format=text"
+		has_arg log_level "$@" || procd_append_param command "-log_level=$log_level"
+	else
+		has_arg log "$@" || procd_append_param command "-log=off"
+	fi
+	[ $# -gt 0 ] && procd_append_param command "$@"
+
 	procd_set_param respawn
 	procd_set_param stdout 1
 	procd_set_param stderr 1
@@ -61,9 +146,4 @@ stop_service() {
 
 service_triggers() {
 	procd_add_reload_trigger "npc"
-}
-
-uci_get_by_type() {
-	local ret=$(uci get npc.@$1[$2].$3 2>/dev/null)
-	echo ${ret:=$4}
 }

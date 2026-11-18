@@ -7,5 +7,57 @@ uci -q batch <<-EOF >/dev/null
 	commit ucitrack
 EOF
 
+# Migrate "list launch" and -launch inside extra_args into one "connection" section each.
+conn_idx=0
+add_connection() {
+	local link="$1" name=""
+	[ -n "$link" ] || return
+	conn_idx=$((conn_idx + 1))
+	case "$link" in
+		npc://*\#*)
+			name="$(echo "${link##*#}" | tr -c 'A-Za-z0-9_\n' '_')"
+			link="${link%#*}"
+			;;
+	esac
+	[ -n "$name" ] && ! uci -q get "npc.$name" >/dev/null || name="conn$conn_idx"
+	uci set "npc.$name=connection"
+	uci set "npc.$name.enabled=1"
+	uci set "npc.$name.link=$link"
+}
+
+# quote_arg writes $1 for the shell: bare when it is plain, else single-quoted.
+quote_arg() {
+	case "$1" in
+		"" | *[!A-Za-z0-9_./:=,@%+-]*) printf "'%s'" "$(printf '%s' "$1" | sed "s/'/'\\\\''/g")" ;;
+		*) printf '%s' "$1" ;;
+	esac
+}
+
+if uci -q get npc.@npc[0] >/dev/null; then
+	for l in $(uci -q get npc.@npc[0].launch); do
+		add_connection "$l"
+	done
+	uci -q delete npc.@npc[0].launch
+
+	extra="$(uci -q get npc.@npc[0].extra_args)"
+	case "$extra" in
+		*launch*)
+			if eval "set -- $extra" 2>/dev/null; then
+				rest=""
+				while [ $# -gt 0 ]; do
+					case "$1" in
+						-launch=*|--launch=*) add_connection "${1#*=}" ;;
+						-launch|--launch) shift; add_connection "$1" ;;
+						*) rest="$rest $(quote_arg "$1")" ;;
+					esac
+					[ $# -gt 0 ] && shift
+				done
+				uci set npc.@npc[0].extra_args="${rest# }"
+			fi
+			;;
+	esac
+	uci commit npc
+fi
+
 rm -f /tmp/luci-indexcache
 exit 0

@@ -16,9 +16,6 @@ msgstr "(tls|quic|wss|tcp) 例如: tls,quic..."
 msgid "e.g. 8.8.8.8"
 msgstr "例如: 8.8.8.8"
 
-msgid "Additional NPC arguments, e.g. '-xxx=yyy -aaa=bbb'"
-msgstr "其他 NPC 参数，例如: '-xxx=yyy -aaa=bbb'"
-
 msgid "NOT INSTALLED"
 msgstr "未安装"
 
@@ -57,3 +54,69 @@ msgstr "安装 NPC"
 
 msgid "Click to install or update NPC via script"
 msgstr "点击通过脚本安装或更新 NPC"
+
+msgid "Basic Settings"
+msgstr "基本设置"
+
+msgid "Advanced Settings"
+msgstr "高级设置"
+
+msgid "Legacy Connection"
+msgstr "旧版连接方式"
+
+msgid "Config File"
+msgstr "配置文件"
+
+msgid "Log Level"
+msgstr "日志级别"
+
+msgid "Global Settings"
+msgstr "全局设置"
+
+msgid "Off"
+msgstr "关闭"
+
+msgid "Logs go to the system log (Status > System Log) when a level is chosen."
+msgstr "选择级别后，日志写入系统日志（状态 > 系统日志）。"
+
+msgid "Additional NPC arguments in shell syntax, line breaks allowed; quote values containing & ? | ; e.g. -pipes=multi -log=stdout"
+msgstr "其他 NPC 参数，按 shell 语法解析，可换行；值中含 & ? | ; 时请加引号，例如: -pipes=multi -log=stdout"
+
+msgid "Optional INI config file path (-config). Ignored by NPC when connections are given."
+msgstr "可选，INI 配置文件路径 (-config)。填写了连接时 NPC 会忽略它。"
+
+msgid "Deprecated in NPC 0.35 (-server/-vkey/-type). Used only when no connection or config file is set, because NPC refuses -server/-vkey together with -launch."
+msgstr "NPC 0.35 起已弃用 (-server/-vkey/-type)。仅在没有启用的连接和配置文件时使用，因为 NPC 不允许 -server/-vkey 与 -launch 同时出现。"
+
+msgid "Connections"
+msgstr "连接"
+
+msgid "Each connection runs independently inside the same NPC process. The name is used as the connection name (#name) in logs and by via= of local access. Copy the link from the NPS web page \"Launch command\"; line breaks and spaces in it are removed on save."
+msgstr "每条连接在同一个 NPC 进程中独立运行。名称即连接名 (#名称)，用于日志和本地访问的 via=。链接从 NPS 网页“启动命令”复制；保存时会去掉其中的换行和空格。"
+
+msgid "Launch Link"
+msgstr "启动链接"
+
+msgid "npc:// link, @/path/to/file, http(s) URL or base64"
+msgstr "npc:// 链接、@/文件路径、http(s) 网址或 base64"
+
+msgid "Launch link is empty"
+msgstr "启动链接不能为空"
+
+msgid "Local Access"
+msgstr "本地访问"
+
+msgid "Optional point-to-point access listeners on this router (-L). e.g. tcp://0.0.0.0:2000?access=KEY&target=192.168.1.10:22&via=home"
+msgstr "可选，在本路由器上开放的点对点访问端口 (-L)，例如: tcp://0.0.0.0:2000?access=KEY&target=192.168.1.10:22&via=home"
+
+msgid "Access Link"
+msgstr "访问链接"
+
+msgid "exit code"
+msgstr "退出码"
+
+msgid "set Log Level to see the reason in System Log"
+msgstr "设置日志级别后可在系统日志中查看原因"
+
+msgid "Running command (keys hidden)"
+msgstr "当前运行命令（已隐藏密钥）"

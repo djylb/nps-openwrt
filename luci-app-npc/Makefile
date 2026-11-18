@@ -5,8 +5,8 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-npc
-PKG_VERSION:=1.8
-PKG_RELEASE:=2
+PKG_VERSION:=1.9
+PKG_RELEASE:=1
 
 LUCI_TITLE:=LuCI support for NPC
 #LUCI_DEPENDS:=+npc

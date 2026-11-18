@@ -9,21 +9,40 @@ function index()
 	entry({"admin", "services", "npc", "status"}, call("act_status")).leaf = true
 end
 
+local function mask(arg)
+	arg = arg:gsub("(npc://)[^@/?#]+@", "%1***@")
+	arg = arg:gsub("(admit_key=)[^&;#|]+", "%1***")
+	arg = arg:gsub("(access=)[^&;#|]+", "%1***")
+	arg = arg:gsub("^(%-%-?vkey=).*", "%1***")
+	arg = arg:gsub("^(%-%-?k=).*", "%1***")
+	return arg
+end
+
 function act_status()
 	local fs = require "nixio.fs"
+	local util = require "luci.util"
 	local e = {}
 
-	if not fs.access("/usr/bin/npc") then
-		e.installed    = false
-		e.running      = false
-		e.version      = ""
-		e.core_version = ""
-	else
-		e.installed   = true
-		e.running      = (luci.sys.call("pgrep npc > /dev/null") == 0)
-		local ver_out  = luci.sys.exec("/usr/bin/npc -version 2>/dev/null")
-		e.version      = ver_out:match("Version:%s*([v%d%.%-]+)")      or ""
-		e.core_version = ver_out:match("Core version:%s*([v%d%.%-]+)") or ""
+	e.installed = fs.access("/usr/bin/npc") and true or false
+	e.running = false
+	e.version = ""
+	if e.installed then
+		local ver_out = luci.sys.exec("/usr/bin/npc -version 2>/dev/null")
+		e.version = ver_out:match("Version:%s*([v%d%.%-]+)") or ""
+	end
+
+	local st = util.ubus("service", "list", { name = "npc" })
+	local inst = st and st.npc and st.npc.instances and st.npc.instances.instance1
+	if inst then
+		e.running = inst.running and true or false
+		e.exit_code = inst.exit_code
+		if type(inst.command) == "table" then
+			local args = {}
+			for i, a in ipairs(inst.command) do
+				args[i] = mask(tostring(a))
+			end
+			e.command = table.concat(args, "\n  ")
+		end
 	end
 
 	luci.http.prepare_content("application/json")
