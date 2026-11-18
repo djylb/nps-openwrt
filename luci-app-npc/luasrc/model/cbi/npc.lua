@@ -83,9 +83,114 @@ vkey.password = true
 protocol = s:taboption("legacy", Value, "protocol", translate("Protocol Type"), translate("(tls|quic|wss|tcp) e.g. tls,quic..."))
 protocol.default = "tls"
 
+-- Quick import: a pasted npc command line, or links one per line, becomes
+-- connection and access sections.
+local function shell_words(text)
+	local words, cur, i, n, quote = {}, nil, 1, #text, nil
+	while i <= n do
+		local ch = text:sub(i, i)
+		if quote then
+			if ch == quote then
+				quote = nil
+			elseif ch == "\\" and quote == '"' and i < n then
+				i = i + 1
+				cur = cur .. text:sub(i, i)
+			else
+				cur = cur .. ch
+			end
+		elseif ch == '"' or ch == "'" then
+			quote, cur = ch, cur or ""
+		elseif ch == "\\" and i < n then
+			i = i + 1
+			local nx = text:sub(i, i)
+			if nx ~= "\n" then cur = (cur or "") .. nx end
+		elseif ch:match("%s") then
+			if cur then words[#words + 1], cur = cur, nil end
+		else
+			cur = (cur or "") .. ch
+		end
+		i = i + 1
+	end
+	if cur then words[#words + 1] = cur end
+	return words
+end
+
+local access_schemes = { tcp = true, udp = true, tcp_udp = true, mixed = true, socks5 = true, http = true, transparent = true }
+
+local function parse_import(text)
+	local conns, access = {}, {}
+	local words = shell_words(text or "")
+	local i = 1
+	while i <= #words do
+		local w = words[i]
+		local flag, val = w:match("^%-%-?([%w_]+)=(.*)$")
+		if not flag and w:match("^%-%-?[%w_]+$") and words[i + 1] then
+			flag, val = w:gsub("^%-+", ""), words[i + 1]
+			if flag == "launch" or flag == "L" or flag == "local" then i = i + 1 else flag = nil end
+		end
+		if flag == "launch" then
+			conns[#conns + 1] = val
+		elseif flag == "L" or flag == "local" then
+			access[#access + 1] = val
+		elseif not flag then
+			local scheme = w:match("^([%w_]+)://")
+			if scheme == "npc" then
+				conns[#conns + 1] = w
+			elseif scheme and access_schemes[scheme] then
+				access[#access + 1] = w
+			end
+		end
+		i = i + 1
+	end
+	return conns, access
+end
+
+local function section_name(uci, link, prefix)
+	local name = link:match("#([^#]+)$")
+	name = name and name:gsub("[^%w_]", "_") or nil
+	if not name or name == "" or uci:get("npc", name) then
+		local n = 1
+		repeat
+			name, n = prefix .. n, n + 1
+		until not uci:get("npc", name)
+	end
+	return name
+end
+
+imp = s:taboption("basic", TextValue, "_import", translate("Quick Import"),
+	translate("Paste the command or the links copied from the NPS web page \"Launch command\"; on save every -launch becomes a connection and every -L a local access below; links already present are skipped."))
+imp.rows = 3
+imp.wrap = "soft"
+imp.placeholder = "./npc -launch=\"npc://...\" -L=\"tcp://...\""
+function imp.cfgvalue() return "" end
+function imp.remove() end
+function imp.write(self, section, value)
+	local uci = self.map.uci
+	local conns, access = parse_import(value)
+	local seen = {}
+	uci:foreach("npc", "connection", function(sec) seen[(sec.link or "")] = true end)
+	uci:foreach("npc", "access", function(sec) seen[(sec.link or "")] = true end)
+	for _, l in ipairs(conns) do
+		l = l:gsub("%s+", "")
+		local bare = l:gsub("#[^#]*$", "")
+		if not seen[l] and not seen[bare] then
+			local name = section_name(uci, l, "conn")
+			uci:section("npc", "connection", name, { enabled = "1", link = l:match("^npc://") and bare or l })
+			seen[l] = true
+		end
+	end
+	for _, l in ipairs(access) do
+		l = l:gsub("%s+", "")
+		if not seen[l] then
+			uci:section("npc", "access", section_name(uci, l, "access"), { enabled = "1", link = l })
+			seen[l] = true
+		end
+	end
+end
+
 -- Connections: one section per -launch
 c = m:section(TypedSection, "connection", translate("Connections"),
-	translate("Each connection runs independently inside the same NPC process. The name is used as the connection name (#name) in logs and by via= of local access. Copy the link from the NPS web page \"Launch command\"; line breaks and spaces in it are removed on save."))
+	translate("Each connection runs independently inside the same NPC process. The name is used as the connection name (#name) in logs and by via= of local access. Copy the \"Launch link\" from the NPS web page \"Launch command\", or use Quick Import above; line breaks and spaces in it are removed on save."))
 c.addremove = true
 c.anonymous = false
 

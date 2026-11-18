@@ -91,8 +91,8 @@ msgstr "NPC 0.35 起已弃用 (-server/-vkey/-type)。仅在没有启用的连�
 msgid "Connections"
 msgstr "连接"
 
-msgid "Each connection runs independently inside the same NPC process. The name is used as the connection name (#name) in logs and by via= of local access. Copy the link from the NPS web page \"Launch command\"; line breaks and spaces in it are removed on save."
-msgstr "每条连接在同一个 NPC 进程中独立运行。名称即连接名 (#名称)，用于日志和本地访问的 via=。链接从 NPS 网页“启动命令”复制；保存时会去掉其中的换行和空格。"
+msgid "Each connection runs independently inside the same NPC process. The name is used as the connection name (#name) in logs and by via= of local access. Copy the \"Launch link\" from the NPS web page \"Launch command\", or use Quick Import above; line breaks and spaces in it are removed on save."
+msgstr "每条连接在同一个 NPC 进程中独立运行。名称即连接名 (#名称)，用于日志和本地访问的 via=。链接从 NPS 网页“启动命令”中的“启动链接”复制，或用上方“快速导入”；保存时会去掉其中的换行和空格。"
 
 msgid "Launch Link"
 msgstr "启动链接"
@@ -120,3 +120,9 @@ msgstr "设置日志级别后可在系统日志中查看原因"
 
 msgid "Running command (keys hidden)"
 msgstr "当前运行命令（已隐藏密钥）"
+
+msgid "Quick Import"
+msgstr "快速导入"
+
+msgid "Paste the command or the links copied from the NPS web page \"Launch command\"; on save every -launch becomes a connection and every -L a local access below; links already present are skipped."
+msgstr "粘贴从 NPS 网页“启动命令”复制的整条命令或链接（可多行）；保存时每个 -launch 变成下方的一条连接，每个 -L 变成一条本地访问，已存在的相同链接会跳过。"
