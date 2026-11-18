@@ -92,6 +92,10 @@ define Build/Compile
 	tar -xzf $(DL_DIR)/$(PKG_SOURCE) -C $(PKG_BUILD_DIR)
 endef
 
+define Package/$(PKG_NAME)/conffiles
+/etc/nps/conf/nps.conf
+endef
+
 define Package/$(PKG_NAME)/install
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/$(PKG_NAME) $(1)/usr/bin/$(PKG_NAME)
@@ -100,13 +104,9 @@ define Package/$(PKG_NAME)/install
 	$(INSTALL_DIR) $(1)/etc/nps/conf
 	$(INSTALL_DIR) $(1)/etc/nps/web
 
-	@if [ -f $(1)/etc/nps/conf/nps.conf ]; then \
-		echo "nps.conf exists, only copying to nps.conf.default"; \
-		cp -f $(PKG_BUILD_DIR)/conf/nps.conf $(1)/etc/nps/conf/nps.conf.default; \
-	else \
-		cp $(PKG_BUILD_DIR)/conf/nps.conf $(1)/etc/nps/conf/; \
-		cp -f $(PKG_BUILD_DIR)/conf/nps.conf $(1)/etc/nps/conf/nps.conf.default; \
-	fi
+	# nps.conf is a conffile: an upgrade keeps the one the user changed.
+	$(INSTALL_CONF) $(PKG_BUILD_DIR)/conf/nps.conf $(1)/etc/nps/conf/nps.conf
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/conf/nps.conf $(1)/etc/nps/conf/nps.conf.default
 
 	$(CP) -rf $(PKG_BUILD_DIR)/web/* $(1)/etc/nps/web/
 endef
