@@ -20,9 +20,15 @@ jobs:
 
       - name: Get latest version
         id: version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          latest=$(curl -s https://api.github.com/repos/djylb/nps/releases/latest | jq -r .tag_name)
+          latest=$(curl -fsS -H "Authorization: Bearer $GH_TOKEN" https://api.github.com/repos/djylb/nps/releases/latest | jq -r .tag_name)
           version=${latest#v}
+          if ! [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Unexpected latest release tag: $latest"
+            exit 1
+          fi
           echo "Latest NPS version: $version"
           echo "LATEST_VERSION=$version" >> $GITHUB_ENV
 
@@ -57,7 +63,7 @@ jobs:
             file="linux_${arch}_client.tar.gz"
             url="https://github.com/djylb/nps/releases/download/v${{ env.LATEST_VERSION }}/$file"
             echo "Downloading $file..."
-            if curl -sLO "$url"; then
+            if curl -fsSLO "$url"; then
               hash=$(sha256sum "$file" | awk '{print $1}')
               if [ $i -eq $last_index ]; then
                 echo "  $arch=$hash" >> ../npc/hashes.tmp
@@ -87,7 +93,7 @@ jobs:
             file="linux_${arch}_server.tar.gz"
             url="https://github.com/djylb/nps/releases/download/v${{ env.LATEST_VERSION }}/$file"
             echo "Downloading $file..."
-            if curl -sLO "$url"; then
+            if curl -fsSLO "$url"; then
               hash=$(sha256sum "$file" | awk '{print $1}')
               if [ $i -eq $last_index ]; then
                 echo "  $arch=$hash" >> ../nps/hashes.tmp
